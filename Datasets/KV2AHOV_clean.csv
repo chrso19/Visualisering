@@ -1,0 +1,25 @@
+Sex;Age;Have watched movies;Have watched series;Have listened to music;Have read or listened to books;Have read, listened to or watched the news;Have used social media;Have played digital games;Have played sports or exercised;Have been to the cinema;Have been to a concert or music festival;Have watched performing arts or a stage performance live, on the internet or on TV;Have sought out visual art physically or digitally;Have visited a library;Have used library digital services;Have attended a sporting event;Have visited a museum;Have visited Danish cultural heritage sites or objects
+Sex, total;Age, total;99;97;100;88;98;100;94;97;88;75;66;70;57;47;63;66;68
+Sex, total;16-24 years;99;98;100;88;98;99;82;96;76;68;66;63;59;47;47;64;68
+Sex, total;25-34 years;99;98;100;88;98;99;77;94;74;64;66;61;63;50;48;65;72
+Sex, total;35-44 years;99;97;99;88;99;97;71;94;73;69;68;61;51;44;48;62;71
+Sex, total;45-54 years;98;95;99;83;99;94;61;92;64;62;64;60;40;32;41;59;67
+Sex, total;55-64 years;97;95;98;83;99;85;56;92;57;54;64;65;46;35;36;63;70
+Sex, total;65-74 years;93;89;95;80;99;67;48;85;47;38;63;61;45;30;27;56;56
+Sex, total;75 years and over;;;;;;;;;;;;;;;;;
+Men;Age, total;99;96;100;82;98;99;97;98;86;70;61;64;51;40;68;62;68
+Men;16-24 years;99;97;99;84;97;99;88;95;75;64;62;59;49;38;51;62;68
+Men;25-34 years;99;97;100;84;98;98;82;93;72;63;63;57;57;42;56;63;73
+Men;35-44 years;99;97;99;84;99;96;72;93;73;71;66;59;47;38;57;63;74
+Men;45-54 years;98;92;99;77;99;91;56;90;62;60;59;55;33;25;49;56;67
+Men;55-64 years;97;93;98;78;99;81;49;91;52;52;59;60;41;29;43;60;69
+Men;65-74 years;93;88;95;75;99;67;46;84;43;36;59;58;43;27;37;55;60
+Men;75 years and over;;;;;;;;;;;;;;;;;
+Women;Age, total;99;99;99;94;98;100;91;97;90;79;72;77;64;54;58;70;68
+Women;16-24 years;99;99;100;93;99;100;76;96;77;72;69;66;70;56;42;66;69
+Women;25-34 years;99;98;100;93;99;99;73;94;76;65;69;65;70;57;39;67;72
+Women;35-44 years;99;98;99;92;99;98;69;95;74;67;70;64;56;50;38;62;68
+Women;45-54 years;99;97;99;89;99;96;65;94;67;64;68;66;46;39;32;62;68
+Women;55-64 years;98;96;98;88;99;88;63;94;62;56;69;69;51;39;30;65;70
+Women;65-74 years;93;89;94;83;99;67;49;87;50;40;65;63;47;32;19;57;53
+Women;75 years and over;;;;;;;;;;;;;;;;;

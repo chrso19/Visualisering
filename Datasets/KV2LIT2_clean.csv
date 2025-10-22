@@ -1,0 +1,25 @@
+Sex;Age;Physical books;E-books;Audio books;Other formats
+Sex, total;Age, total;58;29;27;4
+Sex, total;16-24 years;54;21;30;6
+Sex, total;25-34 years;53;22;37;4
+Sex, total;35-44 years;61;18;39;3
+Sex, total;45-54 years;57;14;27;3
+Sex, total;55-64 years;58;16;19;3
+Sex, total;65-74 years;62;8;13;4
+Sex, total;75 years and over;;;;
+Men;Age, total;..;..;..;..
+Men;16-24 years;47;21;26;9
+Men;25-34 years;44;20;29;7
+Men;35-44 years;56;18;33;4
+Men;45-54 years;46;13;18;4
+Men;55-64 years;48;13;13;4
+Men;65-74 years;48;6;7;3
+Men;75 years and over;;;;
+Women;Age, total;79;37;34;2
+Women;16-24 years;61;21;34;3
+Women;25-34 years;62;23;45;2
+Women;35-44 years;66;17;46;3
+Women;45-54 years;68;15;35;2
+Women;55-64 years;66;18;24;3
+Women;65-74 years;75;10;18;4
+Women;75 years and over;;;;

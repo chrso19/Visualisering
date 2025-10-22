@@ -1,0 +1,25 @@
+Sex;Age;Have visited an amusement or theme park;Have visited a zoo or safari park;Have visited a summer-open amusement or theme park;Have visited an adventure park or experience centre;Have visited a circus;Have visited an aquarium
+Sex, total;Age, total;45;36;27;17;3;13
+Sex, total;16-24 years;35;46;15;19;3;18
+Sex, total;25-34 years;50;47;31;20;11;22
+Sex, total;35-44 years;33;29;17;16;4;12
+Sex, total;45-54 years;23;27;7;9;3;7
+Sex, total;55-64 years;21;29;7;10;5;8
+Sex, total;65-74 years;11;15;3;3;3;6
+Sex, total;75 years and over;;;;;;
+Men;Age, total;40;30;22;16;3;9
+Men;16-24 years;31;48;10;21;3;16
+Men;25-34 years;47;52;33;19;9;23
+Men;35-44 years;37;30;18;18;6;15
+Men;45-54 years;20;22;7;9;3;8
+Men;55-64 years;18;25;7;10;5;9
+Men;65-74 years;10;18;3;4;3;7
+Men;75 years and over;;;;;;
+Women;Age, total;49;43;31;17;2;17
+Women;16-24 years;39;45;20;17;4;20
+Women;25-34 years;54;41;28;22;14;22
+Women;35-44 years;30;28;16;15;2;9
+Women;45-54 years;25;32;7;8;3;7
+Women;55-64 years;23;33;7;10;6;8
+Women;65-74 years;12;14;3;2;3;5
+Women;75 years and over;;;;;;
