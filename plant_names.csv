@@ -1,52 +1,52 @@
-﻿Danish name;English name;Latin name;Category
-Karl Johan;Porcino;Boletus edulis;Funghi
-Brunstokket Rørhat;Bay bolete;Imleria badia;Funghi
-Punktstokket Indigo-Rørhat;Scarletina bolete;Boletus luridiformis;Funghi
-Netstokket Indigo-Rørhat;Suillellus luridus;Boletus luridus;Funghi
-Almindelig Kantarel;Golden chanterelle;Cantharellus cibarius;Funghi
-Tragt-Kantarel;Winter chanterelle;Craterellus tubaeformis;Funghi
-Trompetsvamp;Black chanterelle;Craterellus cornucopioides;Funghi
-Almindelig Østershat;Oyster mushroom;Pleurotus ostreatus;Funghi
-Ramsløg;Wild garlic;Allium ursinum;Herb
-Løgkarse;Garlic mustard;Alliaria petiolata;Herb
-Mælkebøtter;Dandelion;Taraxacum;Herb
-Brændenælder;Common nettle;Urtica dioica;Herb
-Vild kørvel;Cow parsley;Anthriscus sylvestris;Herb
-Skovsyre;Wood-sorrel;Oxalis acetosella;Herb
-Skvalderkål;Ground elder;Aegopodium podagraria;Herb
-Almindelig bøg;Common beech;Fagus sylvatica;Herb
-Hybenroser;Beach rose;Rosa rugosa;Flower
-Tusindfryd;Daisy;Bellis perennis;Flower
-Brøndkarse;Watercress;Nasturtium officinale;Herb
-Ene;Common juniper;Juniperus communis;Berry
-Fuglegræs;Chickweed;Stellaria media;Herb
-Peberrod;Horseradish;Armoracia rusticana;Root
-Almindelig pigsvamp;Sweet tooth;Hydnum repandum;Mushroom
-Vandkarse;Large bitter-cress;Cardamine amara;Herb
-Fingertang;Large brown alga;Laminaria digitata;Algae
-Strandbede;Beet;Beta vulgaris;Herb
-Almindelig mjødurt;Meadowsweet;Filipendula ulmaria;Herb
-Humle;Common hop;Humulus lupulus;Herb
-Martsviol;Wood violet;Viola odorata;Flower
-Almindelig morkel;Morel mushroom;Morchella vulgaris;Mushroom
-Almindelig røn;Rowan;Sorbus aucuparia;Berry
-Skovløg;Sand leek;Allium scorodoprasum;Herb
-Vandmynte;Water mint;Mentha aquatica;Herb
-Rødkløver;Red clover;Trifolium pratense;Herb
-Skællet stilkporesvamp;Pheasant's back mushroom;Polyporus squamosus;Mushroom
-Skovfyr;European red pine;Pinus sylvestris L.;Herb
-Strandsennep;Sea rocket;Cakile maritima;Herb
-Vild timian;Wild thyme;Thymus serpyllum;Herb
-Cikorie;Common chicory;Cichorium intybus;Root
-Skovjordbær;Wild strawberry;Fragia vesca;Berry
-Brombær;Blackberry;Rubus plicatus;Berry
-Fuglekirsebær;Wild cherry;Prunus avium;Berry
-Hindbær;Raspberry;Rubus idaeus;Berry
-Kornblomst;Cornflower;Centaurea cyanus;Flower
-Valnød;Common walnut;Juglans regia;Nut
-Vellugtende kamille;Chamomile;Mantricaria recutita;Flower
-Hyldebær;Elderberry;Sambucus nigra;Berry
-Korbær;Dewberry;Rubus caesius;Berry
-Havtorn;Sea buckthorn;Hippophaë rhamnoides;Berry
-Pære;Common pear;Pyrus communis;Fruit
-Vildæble;Apple;Malus domestica;Fruit
+Danish name;English name;Latin name;Category;taxonKey
+Karl Johan;Porcino;Boletus edulis;Funghi;5954958
+Brunstokket Rørhat;Bay bolete;Imleria badia;Funghi;7832732
+Punktstokket Indigo-Rørhat;Scarletina bolete;Boletus luridiformis;Funghi;5954922
+Netstokket Indigo-Rørhat;Suillellus luridus;Boletus luridus;Funghi;7988694
+Almindelig Kantarel;Golden chanterelle;Cantharellus cibarius;Funghi;5249504
+Tragt-Kantarel;Winter chanterelle;Craterellus tubaeformis;Funghi;2554536
+Trompetsvamp;Black chanterelle;Craterellus cornucopioides;Funghi;2554662
+Almindelig Østershat;Oyster mushroom;Pleurotus ostreatus;Funghi;2526530
+Ramsløg;Wild garlic;Allium ursinum;Herb;2857601
+Løgkarse;Garlic mustard;Alliaria petiolata;Herb;5376075
+Mælkebøtter;Dandelion;Taraxacum;Herb;11157306
+Brændenælder;Common nettle;Urtica dioica;Herb;7960979
+Vild kørvel;Cow parsley;Anthriscus sylvestris;Herb;5371742
+Skovsyre;Wood-sorrel;Oxalis acetosella;Herb;8211958
+Skvalderkål;Ground elder;Aegopodium podagraria;Herb;3034620
+Almindelig bøg;Common beech;Fagus sylvatica;Herb;2882316
+Hybenroser;Beach rose;Rosa rugosa;Flower;3003979
+Tusindfryd;Daisy;Bellis perennis;Flower;3117424
+Brøndkarse;Watercress;Nasturtium officinale;Herb;7701037
+Ene;Common juniper;Juniperus communis;Berry;2684709
+Fuglegræs;Chickweed;Stellaria media;Herb;5384604
+Peberrod;Horseradish;Armoracia rusticana;Root;3041022
+Almindelig pigsvamp;Sweet tooth;Hydnum repandum;Mushroom;2554716
+Vandkarse;Large bitter-cress;Cardamine amara;Herb;3046044
+Fingertang;Large brown alga;Laminaria digitata;Algae;5422479
+Strandbede;Beet;Beta vulgaris;Herb;8971274
+Almindelig mjødurt;Meadowsweet;Filipendula ulmaria;Herb;2987999
+Humle;Common hop;Humulus lupulus;Herb;2984535
+Martsviol;Wood violet;Viola odorata;Flower;5331181
+Almindelig morkel;Morel mushroom;Morchella vulgaris;Mushroom;8071344
+Almindelig røn;Rowan;Sorbus aucuparia;Berry;3012167
+Skovløg;Sand leek;Allium scorodoprasum;Herb;9177060
+Vandmynte;Water mint;Mentha aquatica;Herb;2927208
+Rødkløver;Red clover;Trifolium pratense;Herb;8324121
+Skællet stilkporesvamp;Pheasant's back mushroom;Polyporus squamosus;Mushroom;7365370
+Skovfyr;European red pine;Pinus sylvestris L.;Herb;5285637
+Strandsennep;Sea rocket;Cakile maritima;Herb;3048831
+Vild timian;Wild thyme;Thymus serpyllum;Herb;6409622
+Cikorie;Common chicory;Cichorium intybus;Root;5392252
+Skovjordbær;Wild strawberry;Fragaria vesca;Berry;3029817
+Brombær;Blackberry;Rubus plicatus;Berry;2990412
+Fuglekirsebær;Wild cherry;Prunus avium;Berry;3020791
+Hindbær;Raspberry;Rubus idaeus;Berry;2993094
+Kornblomst;Cornflower;Centaurea cyanus;Flower;3089561
+Valnød;Common walnut;Juglans regia;Nut;3054368
+Vellugtende kamille;Chamomile;Matricaria recutita;Flower;3103774
+Hyldebær;Elderberry;Sambucus nigra;Berry;2888728
+Korbær;Dewberry;Rubus caesius;Berry;2995209
+Havtorn;Sea buckthorn;Hippophaë rhamnoides;Berry;3039285
+Pære;Common pear;Pyrus communis;Fruit;5362573
+Vildæble;Apple;Malus domestica;Fruit;3001244
