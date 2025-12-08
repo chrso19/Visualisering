@@ -1,52 +1,52 @@
-Danish name;English name;Latin name;Category;speciesKey;taxonKey;ourID
-Karl Johan;Porcino;Boletus edulis;Funghi;5954958;5954958;OUR001
-Brunstokket Rørhat;Bay bolete;Imleria badia;Funghi;7832732;7832732;OUR002
-Punktstokket Indigo-Rørhat;Scarletina bolete;Boletus luridiformis;Funghi;8208185;5954922;OUR003
-Netstokket Indigo-Rørhat;Suillellus luridus;Boletus luridus;Funghi;3355021;7988694;OUR004
-Almindelig Kantarel;Golden chanterelle;Cantharellus cibarius;Funghi;5249504;5249504;OUR005
-Tragt-Kantarel;Winter chanterelle;Craterellus tubaeformis;Funghi;2554536;2554536;OUR006
-Trompetsvamp;Black chanterelle;Craterellus cornucopioides;Funghi;2554662;2554662;OUR007
-Almindelig Østershat;Oyster mushroom;Pleurotus ostreatus;Funghi;2526530;2526530;OUR008
-Ramsløg;Wild garlic;Allium ursinum;Herb;2857601;2857601;OUR009
-Løgkarse;Garlic mustard;Alliaria petiolata;Herb;5376075;5376075;OUR010
-Mælkebøtter;Dandelion;Taraxacum;Herb;11157306;11157306;OUR011
-Brændenælder;Common nettle;Urtica dioica;Herb;7960979;7960979;OUR012
-Vild kørvel;Cow parsley;Anthriscus sylvestris;Herb;5371742;5371742;OUR013
-Skovsyre;Wood-sorrel;Oxalis acetosella;Herb;8211958;8211958;OUR014
-Skvalderkål;Ground elder;Aegopodium podagraria;Herb;3034620;3034620;OUR015
-Almindelig bøg;Common beech;Fagus sylvatica;Herb;2882316;2882316;OUR016
-Hybenroser;Beach rose;Rosa rugosa;Flower;3003979;3003979;OUR017
-Tusindfryd;Daisy;Bellis perennis;Flower;3117424;3117424;OUR018
-Brøndkarse;Watercress;Nasturtium officinale;Herb;7701037;7701037;OUR019
-Ene;Common juniper;Juniperus communis;Berry;2684709;2684709;OUR020
-Fuglegræs;Chickweed;Stellaria media;Herb;5384604;5384604;OUR021
-Peberrod;Horseradish;Armoracia rusticana;Root;3041022;3041022;OUR022
-Almindelig pigsvamp;Sweet tooth;Hydnum repandum;Mushroom;2554716;2554716;OUR023
-Vandkarse;Large bitter-cress;Cardamine amara;Herb;3046044;3046044;OUR024
-Fingertang;Large brown alga;Laminaria digitata;Algae;5422479;5422479;OUR025
-Strandbede;Beet;Beta vulgaris;Herb;8971274;8971274;OUR026
-Almindelig mjødurt;Meadowsweet;Filipendula ulmaria;Herb;2987999;2987999;OUR027
-Humle;Common hop;Humulus lupulus;Herb;2984535;2984535;OUR028
-Martsviol;Wood violet;Viola odorata;Flower;5331181;5331181;OUR029
-Almindelig morkel;Morel mushroom;Morchella vulgaris;Mushroom;8071344;8071344;OUR030
-Almindelig røn;Rowan;Sorbus aucuparia;Berry;3012167;3012167;OUR031
-Skovløg;Sand leek;Allium scorodoprasum;Herb;9177060;9177060;OUR032
-Vandmynte;Water mint;Mentha aquatica;Herb;2927208;2927208;OUR033
-Rødkløver;Red clover;Trifolium pratense;Herb;8324121;8324121;OUR034
-Skællet stilkporesvamp;Pheasant's back mushroom;Polyporus squamosus;Mushroom;7365370;7365370;OUR035
-Skovfyr;European red pine;Pinus sylvestris L.;Herb;5285637;5285637;OUR036
-Strandsennep;Sea rocket;Cakile maritima;Herb;3048831;3048831;OUR037
-Vild timian;Wild thyme;Thymus serpyllum;Herb;6409622;6409622;OUR038
-Cikorie;Common chicory;Cichorium intybus;Root;5392252;5392252;OUR039
-Skovjordbær;Wild strawberry;Fragaria vesca;Berry;3029817;3029817;OUR040
-Brombær;Blackberry;Rubus plicatus;Berry;2990412;2990412;OUR041
-Fuglekirsebær;Wild cherry;Prunus avium;Berry;3020791;3020791;OUR042
-Hindbær;Raspberry;Rubus idaeus;Berry;2993094;2993094;OUR043
-Kornblomst;Cornflower;Centaurea cyanus;Flower;3089561;3089561;OUR044
-Valnød;Common walnut;Juglans regia;Nut;3054368;3054368;OUR045
-Vellugtende kamille;Chamomile;Matricaria recutita;Flower;8370958;3103774;OUR046
-Hyldebær;Elderberry;Sambucus nigra;Berry;2888728;2888728;OUR047
-Korbær;Dewberry;Rubus caesius;Berry;2995209;2995209;OUR048
-Havtorn;Sea buckthorn;Hippophaë rhamnoides;Berry;3039285;3039285;OUR049
-Pære;Common pear;Pyrus communis;Fruit;5362573;5362573;OUR050
-Vildæble;Apple;Malus domestica;Fruit;3001244;3001244;OUR051
+Danish name;English name;Latin name;Category;speciesKey;taxonKey;ourID;kingdom;phylum;class;order;family;genus;species
+Karl Johan;Porcino;Boletus edulis;Fungi;5954958;5954958;OUR001;Fungi;Basidiomycota;Agaricomycetes;Boletales;Boletaceae;Boletus;Boletus edulis
+Brunstokket Rørhat;Bay bolete;Imleria badia;Fungi;7832732;7832732;OUR002;Fungi;Basidiomycota;Agaricomycetes;Boletales;Boletaceae;Imleria;Imleria badia
+Punktstokket Indigo-Rørhat;Scarletina bolete;Boletus luridiformis;Fungi;8208185;5954922;OUR003;Fungi;Basidiomycota;Agaricomycetes;Boletales;Boletaceae;Neoboletus;Neoboletus luridiformis
+Netstokket Indigo-Rørhat;Suillellus luridus;Boletus luridus;Fungi;3355021;7988694;OUR004;Fungi;Basidiomycota;Agaricomycetes;Boletales;Boletaceae;Suillellus;Suillellus luridus
+Almindelig Kantarel;Golden chanterelle;Cantharellus cibarius;Fungi;5249504;5249504;OUR005;Fungi;Basidiomycota;Agaricomycetes;Cantharellales;Hydnaceae;Cantharellus;Cantharellus cibarius
+Tragt-Kantarel;Winter chanterelle;Craterellus tubaeformis;Fungi;2554536;2554536;OUR006;Fungi;Basidiomycota;Agaricomycetes;Cantharellales;Hydnaceae;Craterellus;Craterellus tubaeformis
+Trompetsvamp;Black chanterelle;Craterellus cornucopioides;Fungi;2554662;2554662;OUR007;Fungi;Basidiomycota;Agaricomycetes;Cantharellales;Hydnaceae;Craterellus;Craterellus cornucopioides
+Almindelig Østershat;Oyster mushroom;Pleurotus ostreatus;Fungi;2526530;2526530;OUR008;Fungi;Basidiomycota;Agaricomycetes;Agaricales;Pleurotaceae;Pleurotus;Pleurotus ostreatus
+Ramsløg;Wild garlic;Allium ursinum;Herb;2857601;2857601;OUR009;Plantae;Tracheophyta;Liliopsida;Asparagales;Amaryllidaceae;Allium;Allium ursinum
+Løgkarse;Garlic mustard;Alliaria petiolata;Herb;5376075;5376075;OUR010;Plantae;Tracheophyta;Magnoliopsida;Brassicales;Brassicaceae;Alliaria;Alliaria petiolata
+Mælkebøtter;Dandelion;Taraxacum;Herb;11157306;11157306;OUR011;Plantae;Tracheophyta;Magnoliopsida;Asterales;Asteraceae;Taraxacum;Taraxacum
+Brændenælder;Common nettle;Urtica dioica;Herb;7960979;7960979;OUR012;Plantae;Tracheophyta;Magnoliopsida;Rosales;Urticaceae;Urtica;Urtica dioica
+Vild kørvel;Cow parsley;Anthriscus sylvestris;Herb;5371742;5371742;OUR013;Plantae;Tracheophyta;Magnoliopsida;Apiales;Apiaceae;Anthriscus;Anthriscus sylvestris
+Skovsyre;Wood-sorrel;Oxalis acetosella;Herb;8211958;8211958;OUR014;Plantae;Tracheophyta;Magnoliopsida;Oxalidales;Oxalidaceae;Oxalis;Oxalis acetosella
+Skvalderkål;Ground elder;Aegopodium podagraria;Herb;3034620;3034620;OUR015;Plantae;Tracheophyta;Magnoliopsida;Apiales;Apiaceae;Aegopodium;Aegopodium podagraria
+Almindelig bøg;Common beech;Fagus sylvatica;Herb;2882316;2882316;OUR016;Plantae;Tracheophyta;Magnoliopsida;Fagales;Fagaceae;Fagus;Fagus sylvatica
+Hybenroser;Beach rose;Rosa rugosa;Flower;3003979;3003979;OUR017;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Rosa;Rosa rugosa
+Tusindfryd;Daisy;Bellis perennis;Flower;3117424;3117424;OUR018;Plantae;Tracheophyta;Magnoliopsida;Asterales;Asteraceae;Bellis;Bellis perennis
+Brøndkarse;Watercress;Nasturtium officinale;Herb;7701037;7701037;OUR019;Plantae;Tracheophyta;Magnoliopsida;Brassicales;Brassicaceae;Nasturtium;Nasturtium officinale
+Ene;Common juniper;Juniperus communis;Berry;2684709;2684709;OUR020;Plantae;Tracheophyta;Pinopsida;Pinales;Cupressaceae;Juniperus;Juniperus communis
+Fuglegræs;Chickweed;Stellaria media;Herb;5384604;5384604;OUR021;Plantae;Tracheophyta;Magnoliopsida;Caryophyllales;Caryophyllaceae;Stellaria;Stellaria media
+Peberrod;Horseradish;Armoracia rusticana;Root;3041022;3041022;OUR022;Plantae;Tracheophyta;Magnoliopsida;Brassicales;Brassicaceae;Armoracia;Armoracia rusticana
+Almindelig pigsvamp;Sweet tooth;Hydnum repandum;Mushroom;2554716;2554716;OUR023;Fungi;Basidiomycota;Agaricomycetes;Cantharellales;Hydnaceae;Hydnum;Hydnum repandum
+Vandkarse;Large bitter-cress;Cardamine amara;Herb;3046044;3046044;OUR024;Plantae;Tracheophyta;Magnoliopsida;Brassicales;Brassicaceae;Cardamine;Cardamine amara
+Fingertang;Large brown alga;Laminaria digitata;Algae;5422479;5422479;OUR025;Chromista;Ochrophyta;Phaeophyceae;Laminariales;Laminariaceae;Laminaria;Laminaria digitata
+Strandbede;Beet;Beta vulgaris;Herb;8971274;8971274;OUR026;Plantae;Tracheophyta;Magnoliopsida;Caryophyllales;Amaranthaceae;Beta;Beta vulgaris
+Almindelig mjødurt;Meadowsweet;Filipendula ulmaria;Herb;2987999;2987999;OUR027;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Filipendula;Filipendula ulmaria
+Humle;Common hop;Humulus lupulus;Herb;2984535;2984535;OUR028;Plantae;Tracheophyta;Magnoliopsida;Rosales;Cannabaceae;Humulus;Humulus lupulus
+Martsviol;Wood violet;Viola odorata;Flower;5331181;5331181;OUR029;Plantae;Tracheophyta;Magnoliopsida;Malpighiales;Violaceae;Viola;Viola odorata
+Almindelig morkel;Morel mushroom;Morchella vulgaris;Mushroom;8071344;8071344;OUR030;Fungi;Ascomycota;Pezizomycetes;Pezizales;Morchellaceae;Morchella;Morchella vulgaris
+Almindelig røn;Rowan;Sorbus aucuparia;Berry;3012167;3012167;OUR031;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Sorbus;Sorbus aucuparia
+Skovløg;Sand leek;Allium scorodoprasum;Herb;9177060;9177060;OUR032;Plantae;Tracheophyta;Liliopsida;Asparagales;Amaryllidaceae;Allium;Allium scorodoprasum
+Vandmynte;Water mint;Mentha aquatica;Herb;2927208;2927208;OUR033;Plantae;Tracheophyta;Magnoliopsida;Lamiales;Lamiaceae;Mentha;Mentha aquatica
+Rødkløver;Red clover;Trifolium pratense;Herb;8324121;8324121;OUR034;Plantae;Tracheophyta;Magnoliopsida;Fabales;Fabaceae;Trifolium;Trifolium pratense
+Skællet stilkporesvamp;Pheasant's back mushroom;Polyporus squamosus;Mushroom;7365370;7365370;OUR035;Fungi;Basidiomycota;Agaricomycetes;Polyporales;Polyporaceae;Polyporus;Polyporus squamosus
+Skovfyr;European red pine;Pinus sylvestris L.;Herb;5285637;5285637;OUR036;Plantae;Tracheophyta;Pinopsida;Pinales;Pinaceae;Pinus;Pinus sylvestris
+Strandsennep;Sea rocket;Cakile maritima;Herb;3048831;3048831;OUR037;Plantae;Tracheophyta;Magnoliopsida;Brassicales;Brassicaceae;Cakile;Cakile maritima
+Vild timian;Wild thyme;Thymus serpyllum;Herb;6409622;6409622;OUR038;Plantae;Tracheophyta;Magnoliopsida;Lamiales;Lamiaceae;Thymus;Thymus serpyllum
+Cikorie;Common chicory;Cichorium intybus;Root;5392252;5392252;OUR039;Plantae;Tracheophyta;Magnoliopsida;Asterales;Asteraceae;Cichorium;Cichorium intybus
+Skovjordbær;Wild strawberry;Fragaria vesca;Berry;3029817;3029817;OUR040;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Fragaria;Fragaria vesca
+Brombær;Blackberry;Rubus plicatus;Berry;2990412;2990412;OUR041;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Rubus;Rubus plicatus
+Fuglekirsebær;Wild cherry;Prunus avium;Berry;3020791;3020791;OUR042;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Prunus;Prunus avium
+Hindbær;Raspberry;Rubus idaeus;Berry;2993094;2993094;OUR043;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Rubus;Rubus idaeus
+Kornblomst;Cornflower;Centaurea cyanus;Flower;3089561;3089561;OUR044;Plantae;Tracheophyta;Magnoliopsida;Asterales;Asteraceae;Centaurea;Centaurea cyanus
+Valnød;Common walnut;Juglans regia;Nut;3054368;3054368;OUR045;Plantae;Tracheophyta;Magnoliopsida;Fagales;Juglandaceae;Juglans;Juglans regia
+Vellugtende kamille;Chamomile;Matricaria recutita;Flower;8370958;3103774;OUR046;Plantae;Tracheophyta;Magnoliopsida;Asterales;Asteraceae;Matricaria;Matricaria chamomilla
+Hyldebær;Elderberry;Sambucus nigra;Berry;2888728;2888728;OUR047;Plantae;Tracheophyta;Magnoliopsida;Dipsacales;Viburnaceae;Sambucus;Sambucus nigra
+Korbær;Dewberry;Rubus caesius;Berry;2995209;2995209;OUR048;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Rubus;Rubus caesius
+Havtorn;Sea buckthorn;Hippophaë rhamnoides;Berry;3039285;3039285;OUR049;Plantae;Tracheophyta;Magnoliopsida;Rosales;Elaeagnaceae;Hippophae;Hippophae rhamnoides
+Pære;Common pear;Pyrus communis;Fruit;5362573;5362573;OUR050;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Pyrus;Pyrus communis
+Vildæble;Apple;Malus domestica;Fruit;3001244;3001244;OUR051;Plantae;Tracheophyta;Magnoliopsida;Rosales;Rosaceae;Malus;Malus domestica
