@@ -6,20 +6,8 @@ import h3
 import plotly.express as px
 from geojson import Feature, FeatureCollection
 import geojson as json
+from datetime import date
 
-# -------------------------
-# colors
-# -------------------------
-theme = {
-    "color1": "#053913",   # black-forest
-    "color2": "#942911",   # brandy
-    "color3": "#628b48",   # fern
-    "color5": "#d58936",   # bronze
-        
-    "background": "#f7f3e9",   # cream-light
-    "text": "#0b0b09",         # onyx
-    "header" : "#04250C"   # Dark green
-}
 
 # -------------------------
 # Configuration
@@ -37,7 +25,20 @@ plants_raw = data["plants"]
 del data
 
 # Filter and select relevant columns
-observations = observations_raw[["ourID", "decimalLatitude", "decimalLongitude", "year", "month"]]
+observations = observations_raw[["ourID", "decimalLatitude", "decimalLongitude", "eventDate"]].copy()
+
+# -------------------------
+# Set up for datepicker
+# -------------------------
+
+observations['eventDate'] = pd.to_datetime(observations['eventDate'], errors='coerce')
+max_event = observations['eventDate'].max()
+min_event = observations['eventDate'].min()
+default_end = max_event.date().isoformat() if pd.notnull(max_event) else None
+default_start = ((max_event - pd.DateOffset(years=1)).date().isoformat() if pd.notnull(max_event) else None)
+min_date_allowed = min_event.date().isoformat() if pd.notnull(min_event) else None
+max_date_allowed = default_end
+
 plants = plants_raw.dropna(subset=["ourID", "Danish name", "English name", "Latin name", "Category"])
 
 # -------------------------
@@ -137,11 +138,26 @@ app.layout = html.Div([
         html.P(f"Showing {len(observations):,} observations across {len(obs_by_hex):,} hexagons", 
                style={'textAlign': 'center', 'color': '#6c757d', 'marginBottom': '30px'})
     ]),
+    # Date range filter for the map (aligned left, above sidebar and map)
+    html.Div([
+        dcc.DatePickerRange(
+            id='date-filter',
+            start_date=default_start,
+            end_date=default_end,
+            min_date_allowed=min_date_allowed,
+            max_date_allowed=max_date_allowed,
+            display_format='YYYY-MM-DD',
+            minimum_nights=0
+        )
+    ], style={'textAlign': 'left', 'marginBottom': '20px'}),
     
     # Main content
     html.Div([
+        
         # Category filters (left sidebar)
         html.Div([
+            
+
             dcc.Checklist(
                 id='category-filter',
                 options=[
@@ -208,15 +224,31 @@ app.layout = html.Div([
 # -------------------------
 @app.callback(
     Output('plant-map', 'figure'),
-    Input('category-filter', 'value')
+    [Input('category-filter', 'value'),
+     Input('date-filter', 'start_date'),
+     Input('date-filter', 'end_date')]
 )
-def update_map(selected_categories):
+def update_map(selected_categories, start_date, end_date):
     if not selected_categories:
         selected_categories = []
     
     # Filter observations based on selected categories
     filtered_plants = plants[plants['Category'].isin(selected_categories)]
     filtered_observations = observations[observations['ourID'].isin(filtered_plants['ourID'])]
+
+    # Filter by date range (use `eventDate` which should be datetime)
+    if start_date:
+        try:
+            start_ts = pd.to_datetime(start_date)
+            filtered_observations = filtered_observations[filtered_observations['eventDate'] >= start_ts]
+        except Exception:
+            pass
+    if end_date:
+        try:
+            end_ts = pd.to_datetime(end_date)
+            filtered_observations = filtered_observations[filtered_observations['eventDate'] <= end_ts]
+        except Exception:
+            pass
     
     if len(filtered_observations) == 0:
         # Return empty map if no data
@@ -289,9 +321,11 @@ def update_map(selected_categories):
 @app.callback(
     Output('info-panel', 'children'),
     [Input('plant-map', 'clickData'),
-     Input('category-filter', 'value')]
+     Input('category-filter', 'value'),
+     Input('date-filter', 'start_date'),
+     Input('date-filter', 'end_date')]
 )
-def update_info(clickData, selected_categories):
+def update_info(clickData, selected_categories, start_date, end_date):
     if clickData is None:
         return html.Div([
             html.H4("Hexagon Details", style={'marginBottom': '20px'}),
@@ -306,11 +340,25 @@ def update_info(clickData, selected_categories):
     h3_cell = clickData['points'][0]['location']
     
     # Get observations for this hexagon
-    hex_observations = observations[observations['h3_cell'] == h3_cell]
-    
+    hex_observations = observations[observations['h3_cell'] == h3_cell].copy()
+
+    # Apply date filtering (use `eventDate` which is expected to be datetime-like)
+    if start_date:
+        try:
+            start_ts = pd.to_datetime(start_date)
+            hex_observations = hex_observations[hex_observations['eventDate'] >= start_ts]
+        except Exception:
+            pass
+    if end_date:
+        try:
+            end_ts = pd.to_datetime(end_date)
+            hex_observations = hex_observations[hex_observations['eventDate'] <= end_ts]
+        except Exception:
+            pass
+
     # Merge with plants to get species info for each observation
     hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
-    
+
     # Filter by selected categories
     hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
     
