@@ -1,0 +1,68 @@
+:root {
+    /* Core theme colors */
+    --color1: #053913;   /* black-forest */
+    --color2: #942911;   /* brandy */
+    --color3: #628b48;   /* fern */
+    --color4: #d58936;   /* bronze */
+
+    /* Background, text, header */
+    --background: #f7f3e9;   /* cream-light */
+    --text: #0b0b09;         /* onyx */
+    --header: #04250C;       /* Dark green */
+}
+
+/* Global page styling */
+body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: sans-serif;
+}
+
+/* Header bar */
+.header-bar {
+    background-color: var(--header);
+    color: var(--background);
+    padding: 1rem;
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+
+/* Cards */
+.custom-card {
+    background-color: var(--background);
+    border: 2px solid var(--color1);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--color1) !important;
+    border-color: var(--color1) !important;
+    color: var(--background) !important;
+}
+
+.btn-secondary {
+    background-color: var(--color4) !important;
+    border-color: var(--color4) !important;
+    color: var(--background) !important;
+}
+
+/* Graph container styling */
+.graph-wrapper {
+    background-color: var(--background);
+    border: 1px solid var(--color3);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+/* Utility classes */
+.text-accent-1 { color: var(--color1); }
+.text-accent-2 { color: var(--color2); }
+.text-accent-3 { color: var(--color3); }
+.text-accent-5 { color: var(--color4); }
+
+.bg-accent-1 { background-color: var(--color1); }
+.bg-accent-2 { background-color: var(--color2); }
+.bg-accent-3 { background-color: var(--color3); }
+.bg-accent-5 { background-color: var(--color4); }
