@@ -48,6 +48,16 @@ body {
     color: var(--background) !important;
 }
 
+/* Select-all button style */
+.btn-select {
+    background-color: var(--color3) !important;
+    border-color: var(--color3) !important;
+    color: var(--text) !important;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
 /* Graph container styling */
 .graph-wrapper {
     background-color: var(--background);
@@ -66,3 +76,64 @@ body {
 .bg-accent-2 { background-color: var(--color2); }
 .bg-accent-3 { background-color: var(--color3); }
 .bg-accent-5 { background-color: var(--color4); }
+
+
+
+/* Hide Checkbox */
+.category-label > input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* labelstyle */
+.category-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    border-radius: 12px;
+    transition: 0.2s ease;
+    margin-bottom: 15px;
+}
+
+/* enhance icon when icon is chosen */
+.category-label:has(input:checked) {
+    background-color: #a5d6a7;
+    box-shadow: 0 0 8px rgba(0,0,0,0.25);
+    transform: scale(1.1);
+    border: 2px solid #43a047;
+}
+
+/* icon */
+.category-label img.category-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+
+
+.cat-button {
+    width: 120px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 4px 0 4px;
+    box-sizing: border-box;
+    gap: 8px;
+    border-radius: 12px;
+}
+.cat-button img {
+    height: 32px;
+    margin-right: 8px;
+}
+.cat-button.selected {
+    background-color: #c8e6c9;
+    border: 2px solid #388e3c;
+}
+.cat-button:not(.selected) {
+    background-color: #f5f5f5;
+    border: 2px solid #bdbdbd;
+}
