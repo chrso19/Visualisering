@@ -149,7 +149,7 @@ fig.update_layout(
 # -------------------------
 # Create Dash app
 # -------------------------
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
 app.layout = html.Div([
     # Header
@@ -167,16 +167,16 @@ app.layout = html.Div([
             min_date_allowed=min_date_allowed,
             max_date_allowed=max_date_allowed,
             display_format='YYYY-MM-DD',
-            minimum_nights=0
+            minimum_nights=0,
+            style={'fontSize': '12px'}
         )
-    ], style={'textAlign': 'left', 'marginBottom': '20px'}),
+    ], style={'textAlign': 'left', 'marginBottom': '15px'}),
     
     # Hidden store to track the currently clicked hexagon
     dcc.Store(id='clicked-hexagon', data=None),
     
     # Main content
     html.Div([
-        
         # Category buttons (left sidebar)
         html.Div([
             # Store for active categories
@@ -198,9 +198,9 @@ app.layout = html.Div([
                                 'width': '120px',
                                 'height': '48px',
                                 'display': 'flex',
-                                'alignItems': 'left',
-                                'justifyContent': 'center',
-                                'padding': '0',
+                                'alignItems': 'center',
+                                'justifyContent': 'flex-start',
+                                'padding': '0 8px',
                                 'boxSizing': 'border-box'
                             }
                         )
@@ -217,10 +217,7 @@ app.layout = html.Div([
     
         ], style={
             'width': '80px',
-            'padding': '20px 10px',
-            'backgroundColor': '#e8f5e9',
-            'borderRadius': '10px',
-            'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
+            'padding': '20px 10px'
         }),
         
         # Map
@@ -228,7 +225,8 @@ app.layout = html.Div([
             dcc.Graph(
                 id='plant-map',
                 figure=fig,
-                style={'height': '75vh'}
+                style={'height': '75vh'},
+                config={'doubleClick': 'reset'}
             )
         ], style={'width': '55%'}),
         
@@ -246,7 +244,9 @@ app.layout = html.Div([
             'borderLeft': '2px solid #dee2e6', 
             'paddingLeft': '20px'
         })
-    ], style={'display': 'flex', 'gap': '20px', 'alignItems': 'flex-start'})
+    ], style={'display': 'flex', 'gap': '20px', 'alignItems': 'flex-start'}),
+    # Hidden store to have "back to top 10 species" button
+    dcc.Store(id='back-button-clicks', data=0)
 ], style={
     'maxWidth': '1800px', 
     'margin': '0 auto', 
@@ -352,13 +352,25 @@ def store_clicked_hexagon(clickData):
     [Input('active-categories', 'data'),
      Input('date-filter', 'start_date'),
      Input('date-filter', 'end_date'),
-     Input('clicked-hexagon', 'data')]
+     Input('clicked-hexagon', 'data')],
+    [State('plant-map', 'relayoutData')]
 )
-def update_map(selected_categories, start_date, end_date, clicked_hex):
+def update_map(selected_categories, start_date, end_date, clicked_hex, relayoutData):
     """Update map based on category and date filters, and highlight selected hexagon"""
     if not selected_categories:
         selected_categories = []
     
+    # Extract current zoom and center from relayoutData
+    # Keep zoom/state when clicking a different hexagon
+    zoom = 5.5
+    center = DK_CENTER
+    
+    if relayoutData:
+        if 'mapbox.zoom' in relayoutData:
+            zoom = relayoutData['mapbox.zoom']
+        if 'mapbox.center' in relayoutData:
+            center = relayoutData['mapbox.center']
+
     # Filter observations based on selected categories
     filtered_plants = plants[plants['Category'].isin(selected_categories)]
     filtered_observations = observations[observations['ourID'].isin(filtered_plants['ourID'])]
@@ -383,13 +395,13 @@ def update_map(selected_categories, start_date, end_date, clicked_hex):
             pd.DataFrame(),
             geojson={"type": "FeatureCollection", "features": []},
             map_style='carto-positron',
-            zoom=5.5,
-            center=DK_CENTER
+            zoom=zoom,
+            center=center
         )
         # Add invisible marker to maintain colorbar
         empty_fig.add_trace(go.Scattermapbox(
-            lat=[DK_CENTER['lat']],
-            lon=[DK_CENTER['lon']],
+            lat=[center['lat']],
+            lon=[center['lon']],
             mode='markers',
             marker=dict(
                 size=0,
@@ -404,8 +416,8 @@ def update_map(selected_categories, start_date, end_date, clicked_hex):
         ))
         empty_fig.update_layout(margin={"r": 15, "t": 40, "l": 15, "b": 15},
                                 mapbox_style=MAP_CONFIG['map_style'],
-                                mapbox_center=MAP_CONFIG['center'],
-                                mapbox_zoom=5.5)
+                                mapbox_center=center,
+                                mapbox_zoom=zoom)
         return empty_fig
     
     # Recalculate hexagon aggregations
@@ -440,8 +452,8 @@ def update_map(selected_categories, start_date, end_date, clicked_hex):
         color_continuous_scale=MAP_CONFIG['color_continous_scale'],
         range_color=(0, filtered_obs_by_hex['count'].quantile(0.9)),                  
         map_style=MAP_CONFIG['map_style'],
-        zoom=5.5,
-        center=MAP_CONFIG['center'],
+        zoom=zoom,
+        center=center,
         opacity=MAP_CONFIG['opacity'],
         labels=MAP_CONFIG['labels']
     )
@@ -449,7 +461,8 @@ def update_map(selected_categories, start_date, end_date, clicked_hex):
     # Update layout
     new_fig.update_layout(
         margin=MAP_CONFIG['margin'],
-        coloraxis_colorbar=MAP_CONFIG['colorbar_config']
+        coloraxis_colorbar=MAP_CONFIG['colorbar_config'],
+        uirevision='constant'  # This preserves the UI state
     )
     
     # Add marker for clicked hexagon
@@ -500,15 +513,51 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
     if not selected_categories:
         selected_categories = []
 
-    # Get clicked hexagon and its neighbors
+    # Get clicked hexagon
     h3_cell = clickData['points'][0]['location']
+    
+    # Get observations within ONLY the clicked hexagon (for stats)
+    hex_observations_stats = observations[observations['h3_cell'] == h3_cell].copy()
+    
+    # Apply date filter for stats
+    if start_date:
+        try:
+            hex_observations_stats = hex_observations_stats[hex_observations_stats['eventDate'] >= pd.to_datetime(start_date)]
+        except:
+            pass
+    if end_date:
+        try:
+            hex_observations_stats = hex_observations_stats[hex_observations_stats['eventDate'] <= pd.to_datetime(end_date)]
+        except:
+            pass
+    
+    # Merge with plant data for stats
+    hex_obs_with_plants_stats = hex_observations_stats.merge(plants, on='ourID', how='left')
+    hex_obs_with_plants_stats = hex_obs_with_plants_stats[hex_obs_with_plants_stats['Category'].isin(selected_categories)]
+    
+    
+    
+    # Calculate statistics for clicked hexagon only
+    observation_count = len(hex_obs_with_plants_stats)
+    unique_species = hex_obs_with_plants_stats['ourID'].nunique()
+    
+    if observation_count == 0:
+        return html.Div([
+            html.H5("Hexagon Details"),
+            html.P("No observations in selected categories for this hexagon", 
+                   style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
+        ])
+    
+    center = h3.cell_to_latlng(h3_cell)
+    
+    # Get neighbors for mini-map display
     neighbors = set(h3.grid_ring(h3_cell, 1))
-    neighbors.add(h3_cell)  # Include the clicked hexagon itself
-
-    # Get observations within hexagon and neighbors
+    neighbors.add(h3_cell)
+    
+    # Get observations within hexagon and neighbors (for mini-map)
     hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
 
-    # Apply date filter
+    # Apply date filter for mini-map
     if start_date:
         try:
             hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
@@ -520,21 +569,9 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
         except:
             pass
 
-    # Merge with plant data to get species information
+    # Merge with plant data for mini-map
     hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
     hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
-    
-    observation_count = len(hex_obs_with_plants)
-    if observation_count == 0:
-        return html.Div([
-            html.H4("Hexagon Details"),
-            html.P("No observations in selected categories for this hexagon", 
-                   style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
-        ])
-    
-    # Calculate statistics
-    unique_species = hex_obs_with_plants['English name'].nunique()
-    center = h3.cell_to_latlng(h3_cell)
 
     # ----------------------------
     # Create mini-map of observations
@@ -558,8 +595,8 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
             lon=[pt[0] for pt in hex_geom.exterior.coords],
             mode='lines',
             fill='toself',
-            fillcolor='rgba(255,0,0,0.2)',
-            line=dict(color='rgba(255,0,0,0.5)', width=2),
+            fillcolor='rgba(255,0,0,0.08)',
+            line=dict(color='rgba(255,0,0,0.3)', width=1.5),
             showlegend=False,
             hoverinfo='skip'
         )
@@ -571,40 +608,310 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
     else:
         fig = go.Figure()
 
-    # Get top 10 species by count
-    species_counts = hex_obs_with_plants['English name'].value_counts().head(10)
+    # Get top 10 species by count (from clicked hexagon only)
+    species_counts = hex_obs_with_plants_stats['English name'].value_counts().head(10)
     
     return html.Div([
         # Header with hexagon center coordinates
         html.Div([
-            html.H4("Hexagon Details", style={'display': 'inline-block', 'marginRight': '20px'}),
+            html.H5("Hexagon Details", style={'display': 'inline-block', 'marginRight': '15px', 'marginBottom': '0'}),
             html.Span(f"Center: {center[0]:.4f}°, {center[1]:.4f}°", 
-                     style={'fontSize': '14px', 'color': '#555'})
+                     style={'fontSize': '12px', 'color': '#555'}),
+            html.Span(" | ", style={'margin': '0 8px', 'color': '#dee2e6'}),
+            html.Span(f"Observations: {observation_count}", 
+                     style={'fontSize': '12px'}),
+            html.Span(" | ", style={'margin': '0 8px', 'color': '#dee2e6'}),
+            html.Span(f"Species: {unique_species}", 
+                     style={'fontSize': '12px'})
         ], style={'marginBottom': '10px'}),
         
-        # Statistics
-        html.Div([
-            html.Span(f"Total Observations: {observation_count}", 
-                     style={'marginRight': '15px', 'fontSize': '13px'}),
-            html.Span(f"Unique Species: {unique_species}", 
-                     style={'fontSize': '13px'})
-        ], style={'marginBottom': '15px'}),
+        # Mini-map with clickable observations
+        dcc.Graph(id='mini-map', figure=fig, config={'displayModeBar': False}),
         
-        # Mini-map
-        dcc.Graph(figure=fig, config={'displayModeBar': False}),
-        
-        # Top 10 species list
-        html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
-        html.Div([
+        # Placeholder for observation details (initially shows top 10)
+        html.Div(id='observation-details', children=[
+            html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
             html.Div([
-                html.Strong(species, style={'fontSize': '12px'}),
-                html.Span(f" ({count})", 
-                         style={'color': '#6c757d', 'marginLeft': '6px', 'fontSize': '11px'})
-            ], style={'marginBottom': '6px'})
-            for species, count in species_counts.items()
-        ], style={'maxHeight': '200px', 'overflowY': 'auto'})
+                html.Div([
+                    html.Strong(species, style={'fontSize': '12px'}),
+                    html.Span(f" ({count})", 
+                             style={'color': '#6c757d', 'marginLeft': '6px', 'fontSize': '11px'})
+                ], style={'marginBottom': '6px'})
+                for species, count in species_counts.items()
+            ], style={'maxHeight': '200px', 'overflowY': 'auto'})
+        ])
     ], style={'padding': '10px'})
 
+
+# -------------------------
+# Callback to handle back button clicks - "go back to top 10 species"
+# -------------------------
+@app.callback(
+    Output('back-button-clicks', 'data'),
+    Input({'type': 'back-btn', 'index': ALL}, 'n_clicks'),
+    State('back-button-clicks', 'data'),
+    prevent_initial_call=True
+)
+def handle_back_button(n_clicks_list, current_count):
+    """Increment counter when back button is clicked"""
+    if any(n_clicks_list):
+        return (current_count or 0) + 1
+    return current_count or 0
+
+
+# -------------------------
+# Callback to update mini-map (when clicking on a new hexagon or changing dates or category)
+# -------------------------
+@app.callback(
+    Output('mini-map', 'figure'),
+    [Input('plant-map', 'clickData'),
+     Input('active-categories', 'data'),
+     Input('date-filter', 'start_date'),
+     Input('date-filter', 'end_date')]
+)
+def update_minimap(main_click, selected_categories, start_date, end_date):
+    """Update mini-map"""
+    
+    if main_click is None:
+        return go.Figure()
+    
+    if not selected_categories:
+        selected_categories = []
+    
+    # Get clicked hexagon and its neighbors
+    h3_cell = main_click['points'][0]['location']
+    neighbors = set(h3.grid_ring(h3_cell, 1))
+    neighbors.add(h3_cell)
+
+    # Get observations within hexagon and neighbors
+    hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
+
+    # Apply date filter
+    if start_date:
+        try:
+            hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
+        except:
+            pass
+    if end_date:
+        try:
+            hex_observations = hex_observations[hex_observations['eventDate'] <= pd.to_datetime(end_date)]
+        except:
+            pass
+
+    # Merge with plant data
+    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
+    
+    if hex_obs_with_plants.empty:
+        return go.Figure()
+    
+    center = h3.cell_to_latlng(h3_cell)
+    
+    # Create normal map
+    fig = px.scatter_map(
+        hex_obs_with_plants,
+        lat='decimalLatitude',
+        lon='decimalLongitude',
+        color='Category',
+        hover_name='English name',
+        custom_data=['ourID'],  # Pass the ourID so we can identify clicked observations
+        zoom=10,
+        height=250,
+        center={"lat": center[0], "lon": center[1]}
+    )
+    
+    fig.update_layout(
+        map_style='carto-positron', 
+        margin=dict(l=0, r=0, t=0, b=0)
+    )
+    
+    # Add hexagon outline
+    hex_geom = add_geometry({'h3_cell': h3_cell})
+    fig.add_scattermap(
+        lat=[pt[1] for pt in hex_geom.exterior.coords],
+        lon=[pt[0] for pt in hex_geom.exterior.coords],
+        mode='lines',
+        fill='toself',
+        fillcolor='rgba(255,0,0,0.08)',
+        line=dict(color='rgba(255,0,0,0.3)', width=1.5),
+        showlegend=False,
+        hoverinfo='skip'
+    )
+    
+    return fig
+
+
+# -------------------------
+# Callback to update observation details when clicking on mini-map
+# -------------------------
+@app.callback(
+    Output('observation-details', 'children'),
+    [Input('mini-map', 'clickData'),
+     Input('back-button-clicks', 'data')],
+    [State('plant-map', 'clickData'),
+     State('active-categories', 'data'),
+     State('date-filter', 'start_date'),
+     State('date-filter', 'end_date')]
+)
+def update_observation_details(minimap_click, back_count, main_click, selected_categories, start_date, end_date):
+    """Update observation details when clicking on mini-map"""
+    
+    # Check which input triggered the callback
+    ctx = dash.callback_context
+    if ctx.triggered:
+        triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if triggered_id == 'back-button-clicks':
+            # Reset to show top 10
+            minimap_click = None
+    
+    # If no click on mini-map, show top 10 species
+    if minimap_click is None or main_click is None:
+        if main_click is None:
+            return html.Div()
+        
+        # Get hexagon and recalculate top 10
+        h3_cell = main_click['points'][0]['location']
+        # Find all observations within hexagon and neighbors
+        neighbors = set(h3.grid_ring(h3_cell, 1))
+        neighbors.add(h3_cell)
+        
+        hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
+        
+        # Apply date filter
+        if start_date:
+            try:
+                hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
+            except:
+                pass
+        if end_date:
+            try:
+                hex_observations = hex_observations[hex_observations['eventDate'] <= pd.to_datetime(end_date)]
+            except:
+                pass
+        
+        hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+        hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
+        
+        species_counts = hex_obs_with_plants['English name'].value_counts().head(10)
+        
+        return html.Div([
+            html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
+            html.Div([
+                html.Div([
+                    html.Strong(species, style={'fontSize': '12px'}),
+                    html.Span(f" ({count})", 
+                             style={'color': '#6c757d', 'marginLeft': '6px', 'fontSize': '11px'})
+                ], style={'marginBottom': '6px'})
+                for species, count in species_counts.items()
+            ], style={'maxHeight': '200px', 'overflowY': 'auto'})
+        ])
+    
+    # Get clicked observation details
+    point = minimap_click['points'][0]
+    
+    # Get the ourID from customdata
+    if 'customdata' not in point or not point['customdata']:
+        return html.Div([
+            html.P("Observation data not available", style={'color': '#6c757d', 'fontStyle': 'italic'})
+        ])
+    
+    clicked_id = point['customdata'][0]
+    
+    # Use the ourID to find the exact observation
+    h3_cell = main_click['points'][0]['location']
+    neighbors = set(h3.grid_ring(h3_cell, 1))
+    neighbors.add(h3_cell)
+    
+    hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
+    
+    # Apply date filter
+    if start_date:
+        try:
+            hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
+        except:
+            pass
+    if end_date:
+        try:
+            hex_observations = hex_observations[hex_observations['eventDate'] <= pd.to_datetime(end_date)]
+        except:
+            pass
+    
+    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
+    
+    # Find the exact observation by ID
+    clicked_obs = hex_obs_with_plants[hex_obs_with_plants['ourID'] == clicked_id]
+    
+    if clicked_obs.empty:
+        return html.Div([
+            html.P("Observation not found", style={'color': '#6c757d', 'fontStyle': 'italic'})
+        ])
+    
+    clicked_obs = clicked_obs.iloc[0]
+    
+    # Format the date
+    obs_date = "Unknown"
+    if pd.notnull(clicked_obs['eventDate']):
+        obs_date = clicked_obs['eventDate'].strftime('%Y-%m-%d')
+    
+    #
+    category = clicked_obs['Category']
+    
+    return html.Div([
+        # Header and "go back"-button
+        html.Div([
+            html.H5("Observation Details", style={'marginTop': '10px', 'marginBottom': '5px', 'display': 'inline-block'}),
+            html.Button("← Back to Top 10", 
+                       id={'type': 'back-btn', 'index': 0},
+                       n_clicks=0,
+                       style={
+                           'padding': '4px 8px',
+                           'fontSize': '11px',
+                           'backgroundColor': '#f8f9fa',
+                           'border': '1px solid #dee2e6',
+                           'borderRadius': '4px',
+                           'cursor': 'pointer',
+                           'float': 'right'
+                       })
+        ], style={'marginBottom': '10px', 'overflow': 'auto'}),
+        
+        # info box
+        html.Div([
+            
+            # ** ENGLISH NAME (HEADER MED IKON) **
+            html.Div([
+                html.Img(src=f"/assets/icons/{category}.svg", height=28, 
+                         style={'verticalAlign': 'middle', 'marginRight': '8px'}),
+                html.H4(clicked_obs['English name'], 
+                        style={'display': 'inline-block', 'margin': '0', 'verticalAlign': 'middle'})
+            ], style={'marginBottom': '8px', 'borderBottom': '1px solid #eee', 'paddingBottom': '8px'}),
+            
+            # ** LATIN NAME | DANISH NAME **
+            html.Div([
+                html.Span(clicked_obs['Latin name'], 
+                          style={'fontSize': '12px', 'color': '#555', 'fontStyle': 'italic'}),
+                html.Span(" | ", style={'margin': '0 8px', 'color': '#ccc'}),
+                html.Span(clicked_obs['Danish name'], 
+                          style={'fontSize': '12px', 'color': '#555'}),
+            ], style={'marginBottom': '15px', 'textAlign': 'left'}),
+            
+            # ** DATE **
+            html.Div([
+                html.Strong("Date: ", style={'fontSize': '13px'}),
+                html.Span(obs_date, style={'fontSize': '13px'})
+            ], style={'marginBottom': '8px'}),
+            
+            #  LOCATION
+            html.Div([
+                html.Strong("Location: ", style={'fontSize': '13px'}),
+                html.Span(f"{clicked_obs['decimalLatitude']:.5f}°, {clicked_obs['decimalLongitude']:.5f}°", 
+                         style={'fontSize': '13px'})
+            ], style={'marginBottom': '8px'}),
+            
+            
+        ], style={'padding': '10px', 'backgroundColor': '#f8f9fa', 'borderRadius': '5px'})
+    ])
+   
 
 if __name__ == '__main__':
     app.run(debug=True)
