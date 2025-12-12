@@ -6,8 +6,6 @@ import h3
 import plotly.express as px
 import plotly.graph_objects as go
 from geojson import Feature, FeatureCollection
-import geojson as json
-from datetime import date
 
 
 # -------------------------
@@ -32,7 +30,6 @@ plants = plants_raw.dropna(subset=["ourID", "Danish name", "English name", "Lati
 # -------------------------
 # Set up for datepicker
 # -------------------------
-
 observations['eventDate'] = pd.to_datetime(observations['eventDate'], errors='coerce')
 max_event = observations['eventDate'].max()
 min_event = observations['eventDate'].min()
@@ -52,34 +49,15 @@ def geo_to_h3(row):
     return h3.latlng_to_cell(row.decimalLatitude, row.decimalLongitude, H3_RESOLUTION)
 
 observations['h3_cell'] = observations.apply(geo_to_h3, axis=1)
-observations_new = observations[["ourID", "h3_cell"]]
 
 # -------------------------
-# Aggregate by hexagon
-# -------------------------
-obs_by_hex = (observations_new
-              .groupby('h3_cell')
-              .ourID
-              .agg(list)
-              .to_frame("ids")
-              .reset_index())
-
-obs_by_hex['count'] = obs_by_hex['ids'].apply(len)
-obs_by_hex = obs_by_hex.sort_values('count', ascending=False)
-
-# -------------------------
-# Create hexagon geometries
+# Helper functions
 # -------------------------
 def add_geometry(row):
     """Convert H3 cell to Shapely Polygon geometry"""
     points = h3.cell_to_boundary(row['h3_cell'])
     return Polygon([(lng, lat) for lat, lng in points])
 
-obs_by_hex['geometry'] = obs_by_hex.apply(add_geometry, axis=1)
-
-# -------------------------
-# Convert to GeoJSON
-# -------------------------
 def hexagons_dataframe_to_geojson(df_hex, hex_id_field, geometry_field, value_field):
     """Convert hexagon dataframe to GeoJSON FeatureCollection"""
     list_features = []
@@ -94,6 +72,49 @@ def hexagons_dataframe_to_geojson(df_hex, hex_id_field, geometry_field, value_fi
     
     return FeatureCollection(list_features)
 
+def aggregate_by_hex(filtered_observations):
+    """Aggregate observations by hexagon and add geometry"""
+    filtered_obs_new = filtered_observations[["ourID", "h3_cell"]]
+    filtered_obs_by_hex = (filtered_obs_new
+                          .groupby('h3_cell')
+                          .ourID
+                          .agg(list)
+                          .to_frame("ids")
+                          .reset_index())
+    
+    filtered_obs_by_hex['count'] = filtered_obs_by_hex['ids'].apply(len)
+    filtered_obs_by_hex = filtered_obs_by_hex.sort_values('count', ascending=False)
+    filtered_obs_by_hex['geometry'] = filtered_obs_by_hex.apply(add_geometry, axis=1)
+    
+    return filtered_obs_by_hex
+
+def apply_date_filter(df, start_date, end_date):
+    """Apply date range filter to observations dataframe"""
+    filtered = df.copy()
+    
+    if start_date:
+        try:
+            start_ts = pd.to_datetime(start_date)
+            filtered = filtered[filtered['eventDate'] >= start_ts]
+        except Exception:
+            pass
+    if end_date:
+        try:
+            end_ts = pd.to_datetime(end_date)
+            filtered = filtered[filtered['eventDate'] <= end_ts]
+        except Exception:
+            pass
+    
+    return filtered
+
+# -------------------------
+# Initial aggregation
+# -------------------------
+obs_by_hex = aggregate_by_hex(observations)
+
+# -------------------------
+# Convert to GeoJSON
+# -------------------------
 geojson_obj = hexagons_dataframe_to_geojson(
     obs_by_hex,
     hex_id_field='h3_cell',
@@ -103,7 +124,7 @@ geojson_obj = hexagons_dataframe_to_geojson(
 
 # -------------------------
 # Map configuration constants
-# -------------------------
+# ------------------------- 
 # Default map parameters used when creating/updating map
 MAP_CONFIG = {
     'color' : 'count',
@@ -158,7 +179,7 @@ app.layout = html.Div([
                 style={'textAlign': 'center', 'marginBottom': '10px'})
     ]),
     
-    # Date range filter for the map (aligned left, above sidebar and map)
+    # Date range filter for the map
     html.Div([
         dcc.DatePickerRange(
             id='date-filter',
@@ -172,15 +193,16 @@ app.layout = html.Div([
         )
     ], style={'textAlign': 'left', 'marginBottom': '15px'}),
     
-    # Hidden store to track the currently clicked hexagon
-    dcc.Store(id='clicked-hexagon', data=None),
+    # Hidden stores
+    dcc.Store(id='clicked-hexagon', data=None), # Which hexagon is currently clicked
+    dcc.Store(id='active-categories', data=CATEGORIES), #categories that are selected
+    dcc.Store(id='filtered-hex-data', data=None),  # Store filtered data to avoid recalculation
+    dcc.Store(id='back-button-clicks', data=0), # for the "back to top 10 species"
     
     # Main content
     html.Div([
         # Category buttons (left sidebar)
         html.Div([
-            # Store for active categories
-            dcc.Store(id='active-categories', data=CATEGORIES),
             html.Div(
                 [
                     # Create category filter buttons using list comprehension, * is for unpacking list
@@ -244,9 +266,7 @@ app.layout = html.Div([
             'borderLeft': '2px solid #dee2e6', 
             'paddingLeft': '20px'
         })
-    ], style={'display': 'flex', 'gap': '20px', 'alignItems': 'flex-start'}),
-    # Hidden store to have "back to top 10 species" button
-    dcc.Store(id='back-button-clicks', data=0)
+    ], style={'display': 'flex', 'gap': '20px', 'alignItems': 'flex-start'})
 ], style={
     'maxWidth': '1800px', 
     'margin': '0 auto', 
@@ -282,7 +302,6 @@ def update_select_all_text(active_cats):
 )
 def toggle_categories(n_clicks_list, select_all_clicks, active_cats, ids):
     """Manage which categories are currently active based on button clicks"""
-    
     # Find which button triggered the callback
     ctx = dash.callback_context
     if not ctx.triggered:
@@ -304,7 +323,6 @@ def toggle_categories(n_clicks_list, select_all_clicks, active_cats, ids):
     # Handle individual category button toggle
     if isinstance(triggered, dict):
         cat = triggered.get('cat')
-        
         # Just for robustness
         if cat is None:
             return active_cats
@@ -315,11 +333,10 @@ def toggle_categories(n_clicks_list, select_all_clicks, active_cats, ids):
         else:
             return active_cats + [cat]
 
-    # Fallback
     return active_cats
 
 # -------------------------
-# Callback to update button visual styles active/inactive
+# Callback to update button visual styles (active/inactive)
 # -------------------------
 @app.callback(
     Output({"type": "cat-btn", "cat": ALL}, "className"),
@@ -345,23 +362,51 @@ def store_clicked_hexagon(clickData):
     return clickData['points'][0]['location']
 
 # -------------------------
-# Callback to update map based on filters and highlight clicked hexagon
+# Callback to store filtered hex data
+# -------------------------
+@app.callback(
+    Output('filtered-hex-data', 'data'),
+    [Input('active-categories', 'data'),
+     Input('date-filter', 'start_date'),
+     Input('date-filter', 'end_date')]
+)
+def store_filtered_data(selected_categories, start_date, end_date):
+    """Store filtered observations to avoid recalculating in multiple callbacks"""
+    if not selected_categories:
+        return None
+    
+    # Filter observations based on selected categories
+    filtered_plants = plants[plants['Category'].isin(selected_categories)]
+    filtered_observations = observations[observations['ourID'].isin(filtered_plants['ourID'])]
+    
+    # Filter by date range
+    filtered_observations = apply_date_filter(filtered_observations, start_date, end_date)
+    
+    if len(filtered_observations) == 0:
+        return None
+    
+    # Store as dictionary with the data we need
+    return {
+        'h3_cells': filtered_observations['h3_cell'].tolist(),
+        'ourIDs': filtered_observations['ourID'].tolist(),
+        'lats': filtered_observations['decimalLatitude'].tolist(),
+        'lons': filtered_observations['decimalLongitude'].tolist(),
+        'dates': filtered_observations['eventDate'].astype(str).tolist()
+    }
+
+# -------------------------
+# Callback to update map
 # -------------------------
 @app.callback(
     Output('plant-map', 'figure'),
-    [Input('active-categories', 'data'),
-     Input('date-filter', 'start_date'),
-     Input('date-filter', 'end_date'),
+    [Input('filtered-hex-data', 'data'),
      Input('clicked-hexagon', 'data')],
     [State('plant-map', 'relayoutData')]
 )
-def update_map(selected_categories, start_date, end_date, clicked_hex, relayoutData):
-    """Update map based on category and date filters, and highlight selected hexagon"""
-    if not selected_categories:
-        selected_categories = []
+def update_map(filtered_data, clicked_hex, relayoutData):
+    """Update map based on filtered data and highlight selected hexagon"""
     
     # Extract current zoom and center from relayoutData
-    # Keep zoom/state when clicking a different hexagon
     zoom = 5.5
     center = DK_CENTER
     
@@ -371,25 +416,7 @@ def update_map(selected_categories, start_date, end_date, clicked_hex, relayoutD
         if 'mapbox.center' in relayoutData:
             center = relayoutData['mapbox.center']
 
-    # Filter observations based on selected categories
-    filtered_plants = plants[plants['Category'].isin(selected_categories)]
-    filtered_observations = observations[observations['ourID'].isin(filtered_plants['ourID'])]
-
-    # Filter by date range
-    if start_date:
-        try:
-            start_ts = pd.to_datetime(start_date)
-            filtered_observations = filtered_observations[filtered_observations['eventDate'] >= start_ts]
-        except Exception:
-            pass
-    if end_date:
-        try:
-            end_ts = pd.to_datetime(end_date)
-            filtered_observations = filtered_observations[filtered_observations['eventDate'] <= end_ts]
-        except Exception:
-            pass
-    
-    if len(filtered_observations) == 0:
+    if filtered_data is None:
         # Return empty map if no data
         empty_fig = px.choropleth_map(
             pd.DataFrame(),
@@ -414,26 +441,22 @@ def update_map(selected_categories, start_date, end_date, clicked_hex, relayoutD
             ),
             showlegend=False
         ))
-        empty_fig.update_layout(margin={"r": 15, "t": 40, "l": 15, "b": 15},
-                                mapbox_style=MAP_CONFIG['map_style'],
-                                mapbox_center=center,
-                                mapbox_zoom=zoom)
+        empty_fig.update_layout(
+            margin=MAP_CONFIG['margin'],
+            mapbox_style=MAP_CONFIG['map_style'],
+            mapbox_center=center,
+            mapbox_zoom=zoom
+        )
         return empty_fig
     
+    # Reconstruct filtered observations from stored data
+    filtered_observations = pd.DataFrame({
+        'h3_cell': filtered_data['h3_cells'],
+        'ourID': filtered_data['ourIDs']
+    })
+    
     # Recalculate hexagon aggregations
-    filtered_obs_new = filtered_observations[["ourID", "h3_cell"]]
-    filtered_obs_by_hex = (filtered_obs_new
-                          .groupby('h3_cell')
-                          .ourID
-                          .agg(list)
-                          .to_frame("ids")
-                          .reset_index())
-    
-    filtered_obs_by_hex['count'] = filtered_obs_by_hex['ids'].apply(len)
-    filtered_obs_by_hex = filtered_obs_by_hex.sort_values('count', ascending=False)
-    
-    # Add geometry
-    filtered_obs_by_hex['geometry'] = filtered_obs_by_hex.apply(add_geometry, axis=1)
+    filtered_obs_by_hex = aggregate_by_hex(filtered_observations)
     
     # Create GeoJSON
     filtered_geojson = hexagons_dataframe_to_geojson(
@@ -462,16 +485,13 @@ def update_map(selected_categories, start_date, end_date, clicked_hex, relayoutD
     new_fig.update_layout(
         margin=MAP_CONFIG['margin'],
         coloraxis_colorbar=MAP_CONFIG['colorbar_config'],
-        uirevision='constant'  # This preserves the UI state
+        uirevision='constant'
     )
     
     # Add marker for clicked hexagon
     if clicked_hex is not None and clicked_hex in filtered_obs_by_hex['h3_cell'].values:
         try:
-            # Get center coordinates of clicked hexagon
             center_lat, center_lon = h3.cell_to_latlng(clicked_hex)
-            
-            # Add a marker at the center
             new_fig.add_scattermap(
                 lat=[center_lat],
                 lon=[center_lon],
@@ -487,21 +507,19 @@ def update_map(selected_categories, start_date, end_date, clicked_hex, relayoutD
             )
         except Exception as e:
             print(f"Marker error: {e}")
-            pass
     
     return new_fig
 
 # -------------------------
-# Callback to update info panel with details and mini-map
+# Callback to update info panel
 # -------------------------
 @app.callback(
     Output('info-panel', 'children'),
     [Input('plant-map', 'clickData'),
      Input('active-categories', 'data'),
-     Input('date-filter', 'start_date'),
-     Input('date-filter', 'end_date')]
+     Input('filtered-hex-data', 'data')]
 )
-def update_info_panel(clickData, selected_categories, start_date, end_date):
+def update_info_panel(clickData, selected_categories, filtered_data):
     """Update info panel with hexagon details, mini-map, and species list"""
     if clickData is None:
         return html.Div([
@@ -510,34 +528,31 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
                    style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '100px'})
         ])
     
-    if not selected_categories:
-        selected_categories = []
+    if not selected_categories or filtered_data is None:
+        return html.Div([
+            html.H4("Hexagon Details"),
+            html.P("No observations in selected categories", 
+                   style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
+        ])
 
-    # Get clicked hexagon
     h3_cell = clickData['points'][0]['location']
     
-    # Get observations within ONLY the clicked hexagon (for stats)
-    hex_observations_stats = observations[observations['h3_cell'] == h3_cell].copy()
+    # Reconstruct filtered observations
+    filtered_observations = pd.DataFrame({
+        'h3_cell': filtered_data['h3_cells'],
+        'ourID': filtered_data['ourIDs'],
+        'decimalLatitude': filtered_data['lats'],
+        'decimalLongitude': filtered_data['lons'],
+        'eventDate': pd.to_datetime(filtered_data['dates'])
+    })
     
-    # Apply date filter for stats
-    if start_date:
-        try:
-            hex_observations_stats = hex_observations_stats[hex_observations_stats['eventDate'] >= pd.to_datetime(start_date)]
-        except:
-            pass
-    if end_date:
-        try:
-            hex_observations_stats = hex_observations_stats[hex_observations_stats['eventDate'] <= pd.to_datetime(end_date)]
-        except:
-            pass
+    # Get observations within ONLY the clicked hexagon (for stats)
+    hex_observations_stats = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
     
     # Merge with plant data for stats
     hex_obs_with_plants_stats = hex_observations_stats.merge(plants, on='ourID', how='left')
     hex_obs_with_plants_stats = hex_obs_with_plants_stats[hex_obs_with_plants_stats['Category'].isin(selected_categories)]
     
-    
-    
-    # Calculate statistics for clicked hexagon only
     observation_count = len(hex_obs_with_plants_stats)
     unique_species = hex_obs_with_plants_stats['ourID'].nunique()
     
@@ -555,27 +570,11 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
     neighbors.add(h3_cell)
     
     # Get observations within hexagon and neighbors (for mini-map)
-    hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
-
-    # Apply date filter for mini-map
-    if start_date:
-        try:
-            hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
-        except:
-            pass
-    if end_date:
-        try:
-            hex_observations = hex_observations[hex_observations['eventDate'] <= pd.to_datetime(end_date)]
-        except:
-            pass
-
-    # Merge with plant data for mini-map
+    hex_observations = filtered_observations[filtered_observations['h3_cell'].isin(neighbors)].copy()
     hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
     hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
 
-    # ----------------------------
-    # Create mini-map of observations
-    # ----------------------------
+    # Create mini-map
     if not hex_obs_with_plants.empty:
         fig = px.scatter_map(
             hex_obs_with_plants,
@@ -585,10 +584,10 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
             hover_name='English name',
             zoom=10,
             height=250,
-            center={"lat": center[0], "lon": center[1]}  # Center on clicked hexagon
+            center={"lat": center[0], "lon": center[1]}
         )
 
-        # Add semi-transparent polygon for the clicked hexagon
+        # Add hexagon outline
         hex_geom = add_geometry({'h3_cell': h3_cell})
         fig.add_scattermap(
             lat=[pt[1] for pt in hex_geom.exterior.coords],
@@ -628,7 +627,7 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
         # Mini-map with clickable observations
         dcc.Graph(id='mini-map', figure=fig, config={'displayModeBar': False}),
         
-        # Placeholder for observation details (initially shows top 10)
+        # Placeholder for observation details
         html.Div(id='observation-details', children=[
             html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
             html.Div([
@@ -642,9 +641,8 @@ def update_info_panel(clickData, selected_categories, start_date, end_date):
         ])
     ], style={'padding': '10px'})
 
-
 # -------------------------
-# Callback to handle back button clicks - "go back to top 10 species"
+# Callback to handle back button clicks
 # -------------------------
 @app.callback(
     Output('back-button-clicks', 'data'),
@@ -658,63 +656,46 @@ def handle_back_button(n_clicks_list, current_count):
         return (current_count or 0) + 1
     return current_count or 0
 
-
 # -------------------------
-# Callback to update mini-map (when clicking on a new hexagon or changing dates or category)
+# Callback to update mini-map
 # -------------------------
 @app.callback(
     Output('mini-map', 'figure'),
     [Input('plant-map', 'clickData'),
-     Input('active-categories', 'data'),
-     Input('date-filter', 'start_date'),
-     Input('date-filter', 'end_date')]
+     Input('filtered-hex-data', 'data')]
 )
-def update_minimap(main_click, selected_categories, start_date, end_date):
+def update_minimap(main_click, filtered_data):
     """Update mini-map"""
-    
-    if main_click is None:
+    if main_click is None or filtered_data is None:
         return go.Figure()
     
-    if not selected_categories:
-        selected_categories = []
-    
-    # Get clicked hexagon and its neighbors
     h3_cell = main_click['points'][0]['location']
     neighbors = set(h3.grid_ring(h3_cell, 1))
     neighbors.add(h3_cell)
 
-    # Get observations within hexagon and neighbors
-    hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
-
-    # Apply date filter
-    if start_date:
-        try:
-            hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
-        except:
-            pass
-    if end_date:
-        try:
-            hex_observations = hex_observations[hex_observations['eventDate'] <= pd.to_datetime(end_date)]
-        except:
-            pass
-
-    # Merge with plant data
+    # Reconstruct filtered observations
+    filtered_observations = pd.DataFrame({
+        'h3_cell': filtered_data['h3_cells'],
+        'ourID': filtered_data['ourIDs'],
+        'decimalLatitude': filtered_data['lats'],
+        'decimalLongitude': filtered_data['lons']
+    })
+    
+    hex_observations = filtered_observations[filtered_observations['h3_cell'].isin(neighbors)].copy()
     hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
-    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
     
     if hex_obs_with_plants.empty:
         return go.Figure()
     
     center = h3.cell_to_latlng(h3_cell)
     
-    # Create normal map
     fig = px.scatter_map(
         hex_obs_with_plants,
         lat='decimalLatitude',
         lon='decimalLongitude',
         color='Category',
         hover_name='English name',
-        custom_data=['ourID'],  # Pass the ourID so we can identify clicked observations
+        custom_data=['ourID'],
         zoom=10,
         height=250,
         center={"lat": center[0], "lon": center[1]}
@@ -740,7 +721,6 @@ def update_minimap(main_click, selected_categories, start_date, end_date):
     
     return fig
 
-
 # -------------------------
 # Callback to update observation details when clicking on mini-map
 # -------------------------
@@ -749,11 +729,9 @@ def update_minimap(main_click, selected_categories, start_date, end_date):
     [Input('mini-map', 'clickData'),
      Input('back-button-clicks', 'data')],
     [State('plant-map', 'clickData'),
-     State('active-categories', 'data'),
-     State('date-filter', 'start_date'),
-     State('date-filter', 'end_date')]
+     State('filtered-hex-data', 'data')]
 )
-def update_observation_details(minimap_click, back_count, main_click, selected_categories, start_date, end_date):
+def update_observation_details(minimap_click, back_count, main_click, filtered_data):
     """Update observation details when clicking on mini-map"""
     
     # Check which input triggered the callback
@@ -761,37 +739,28 @@ def update_observation_details(minimap_click, back_count, main_click, selected_c
     if ctx.triggered:
         triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
         if triggered_id == 'back-button-clicks':
-            # Reset to show top 10
             minimap_click = None
     
+    if main_click is None or filtered_data is None:
+        return html.Div()
+    
+    h3_cell = main_click['points'][0]['location']
+    
+    # Reconstruct filtered observations
+    filtered_observations = pd.DataFrame({
+        'h3_cell': filtered_data['h3_cells'],
+        'ourID': filtered_data['ourIDs'],
+        'decimalLatitude': filtered_data['lats'],
+        'decimalLongitude': filtered_data['lons'],
+        'eventDate': pd.to_datetime(filtered_data['dates'])
+    })
+    
+    # Get observations for clicked hexagon only
+    hex_observations = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
+    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+    
     # If no click on mini-map, show top 10 species
-    if minimap_click is None or main_click is None:
-        if main_click is None:
-            return html.Div()
-        
-        # Get hexagon and recalculate top 10
-        h3_cell = main_click['points'][0]['location']
-        # Find all observations within hexagon and neighbors
-        neighbors = set(h3.grid_ring(h3_cell, 1))
-        neighbors.add(h3_cell)
-        
-        hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
-        
-        # Apply date filter
-        if start_date:
-            try:
-                hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
-            except:
-                pass
-        if end_date:
-            try:
-                hex_observations = hex_observations[hex_observations['eventDate'] <= pd.to_datetime(end_date)]
-            except:
-                pass
-        
-        hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
-        hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
-        
+    if minimap_click is None:
         species_counts = hex_obs_with_plants['English name'].value_counts().head(10)
         
         return html.Div([
@@ -809,37 +778,12 @@ def update_observation_details(minimap_click, back_count, main_click, selected_c
     # Get clicked observation details
     point = minimap_click['points'][0]
     
-    # Get the ourID from customdata
     if 'customdata' not in point or not point['customdata']:
         return html.Div([
             html.P("Observation data not available", style={'color': '#6c757d', 'fontStyle': 'italic'})
         ])
     
     clicked_id = point['customdata'][0]
-    
-    # Use the ourID to find the exact observation
-    h3_cell = main_click['points'][0]['location']
-    neighbors = set(h3.grid_ring(h3_cell, 1))
-    neighbors.add(h3_cell)
-    
-    hex_observations = observations[observations['h3_cell'].isin(neighbors)].copy()
-    
-    # Apply date filter
-    if start_date:
-        try:
-            hex_observations = hex_observations[hex_observations['eventDate'] >= pd.to_datetime(start_date)]
-        except:
-            pass
-    if end_date:
-        try:
-            hex_observations = hex_observations[hex_observations['eventDate'] <= pd.to_datetime(end_date)]
-        except:
-            pass
-    
-    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
-    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
-    
-    # Find the exact observation by ID
     clicked_obs = hex_obs_with_plants[hex_obs_with_plants['ourID'] == clicked_id]
     
     if clicked_obs.empty:
@@ -854,11 +798,10 @@ def update_observation_details(minimap_click, back_count, main_click, selected_c
     if pd.notnull(clicked_obs['eventDate']):
         obs_date = clicked_obs['eventDate'].strftime('%Y-%m-%d')
     
-    #
     category = clicked_obs['Category']
     
     return html.Div([
-        # Header and "go back"-button
+        # Header and back button
         html.Div([
             html.H5("Observation Details", style={'marginTop': '10px', 'marginBottom': '5px', 'display': 'inline-block'}),
             html.Button("← Back to Top 10", 
@@ -875,10 +818,9 @@ def update_observation_details(minimap_click, back_count, main_click, selected_c
                        })
         ], style={'marginBottom': '10px', 'overflow': 'auto'}),
         
-        # info box
+        # Info box
         html.Div([
-            
-            # ** ENGLISH NAME (HEADER MED IKON) **
+            # English name with icon
             html.Div([
                 html.Img(src=f"/assets/icons/{category}.svg", height=28, 
                          style={'verticalAlign': 'middle', 'marginRight': '8px'}),
@@ -886,7 +828,7 @@ def update_observation_details(minimap_click, back_count, main_click, selected_c
                         style={'display': 'inline-block', 'margin': '0', 'verticalAlign': 'middle'})
             ], style={'marginBottom': '8px', 'borderBottom': '1px solid #eee', 'paddingBottom': '8px'}),
             
-            # ** LATIN NAME | DANISH NAME **
+            # Latin name | Danish name
             html.Div([
                 html.Span(clicked_obs['Latin name'], 
                           style={'fontSize': '12px', 'color': '#555', 'fontStyle': 'italic'}),
@@ -895,23 +837,22 @@ def update_observation_details(minimap_click, back_count, main_click, selected_c
                           style={'fontSize': '12px', 'color': '#555'}),
             ], style={'marginBottom': '15px', 'textAlign': 'left'}),
             
-            # ** DATE **
+            # Date
             html.Div([
                 html.Strong("Date: ", style={'fontSize': '13px'}),
                 html.Span(obs_date, style={'fontSize': '13px'})
             ], style={'marginBottom': '8px'}),
             
-            #  LOCATION
+            # Location
             html.Div([
                 html.Strong("Location: ", style={'fontSize': '13px'}),
                 html.Span(f"{clicked_obs['decimalLatitude']:.5f}°, {clicked_obs['decimalLongitude']:.5f}°", 
                          style={'fontSize': '13px'})
             ], style={'marginBottom': '8px'}),
             
-            
         ], style={'padding': '10px', 'backgroundColor': '#f8f9fa', 'borderRadius': '5px'})
     ])
-   
+
 
 if __name__ == '__main__':
     app.run(debug=True)
