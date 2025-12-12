@@ -755,14 +755,31 @@ def update_observation_details(minimap_click, back_count, main_click, filtered_d
         'eventDate': pd.to_datetime(filtered_data['dates'])
     })
     
-    # Get observations for clicked hexagon only
-    hex_observations = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
+    # --- START FIX: Include the main hexagon and its neighbors for observation lookup ---
+    neighbors = set(h3.grid_ring(h3_cell, 1))
+    neighbors.add(h3_cell)
+    
+    # Get observations for the clicked hexagon AND its neighbors (to match minimap content)
+    hex_observations = filtered_observations[filtered_observations['h3_cell'].isin(neighbors)].copy()
+    # --- END FIX ---
+
     hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
     
     # If no click on mini-map, show top 10 species
     if minimap_click is None:
-        species_counts = hex_obs_with_plants['English name'].value_counts().head(10)
         
+        # NOTE: If you want the Top 10 species to ONLY be based on the main hexagon 
+        # (not the neighbors), you must re-filter here:
+        main_hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['h3_cell'] == h3_cell].copy()
+        species_counts = main_hex_obs_with_plants['English name'].value_counts().head(10)
+        
+        # Handle case where main hexagon has no species (if user clicks 'Back')
+        if species_counts.empty:
+            return html.Div([
+                html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
+                html.P("No observations in this hexagon.", style={'color': '#6c757d', 'fontStyle': 'italic'})
+            ])
+
         return html.Div([
             html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
             html.Div([
@@ -784,7 +801,9 @@ def update_observation_details(minimap_click, back_count, main_click, filtered_d
         ])
     
     clicked_id = point['customdata'][0]
-    clicked_obs = hex_obs_with_plants[hex_obs_with_plants['ourID'] == clicked_id]
+    
+    # Now use the broader hex_obs_with_plants which includes neighbors
+    clicked_obs = hex_obs_with_plants[hex_obs_with_plants['ourID'] == clicked_id] 
     
     if clicked_obs.empty:
         return html.Div([
