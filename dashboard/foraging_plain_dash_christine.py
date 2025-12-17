@@ -25,6 +25,24 @@ CATEGORY_COLORS = {
     "Fungi":    "#5c1c0d",  
 }
 
+tabs_styles = {
+    'height': '44px'
+}
+
+tab_style = {
+    'borderBottom': '1px solid #d6d6d6',
+    'padding': '6px',
+    'fontWeight': 'bold'
+}
+
+tab_selected_style = {
+    'borderTop': '1px solid #d6d6d6',
+    'borderBottom': '1px solid #d6d6d6',
+    'backgroundColor': '#119DFF',
+    'color': 'white',
+    'padding': '6px'
+}
+
 # -------------------------
 # Load data
 # -------------------------
@@ -117,6 +135,38 @@ def apply_date_filter(df, start_date, end_date):
     
     return filtered
 
+def category_counts_by_hex(filtered_observations, plants_df):
+    merged = filtered_observations.merge(
+        plants_df[["ourID", "Category"]],
+        on="ourID",
+        how="left"
+    )
+
+    counts = (
+        merged
+        .groupby(["h3_cell", "Category"])
+        .size()
+        .reset_index(name="count")
+    )
+
+    return counts
+
+def build_hover_text(category_counts):
+    hover_map = {}
+
+    for h3_cell, group in category_counts.groupby("h3_cell"):
+        total = group["count"].sum()
+
+        lines = [
+            f"{row['Category']}: {row['count']}"
+            for _, row in group.sort_values("count", ascending=False).iterrows()
+        ]
+        lines.append(f"<b>Total observations: {total}</b>")
+
+        hover_map[h3_cell] = "<br>".join(lines)
+
+    return hover_map
+
 # -------------------------
 # Initial aggregation
 # -------------------------
@@ -131,6 +181,14 @@ geojson_obj = hexagons_dataframe_to_geojson(
     value_field='count',
     geometry_field='geometry'
 )
+
+# -------------------------
+# Species by category
+# -------------------------
+ALL_SPECIES_BY_CATEGORY = {
+    cat: set(plants.loc[plants["Category"] == cat, "ourID"])
+    for cat in CATEGORIES
+}
 
 # -------------------------
 # Map configuration constants
@@ -189,8 +247,9 @@ app.layout = html.Div([
                 style={'textAlign': 'center', 'marginBottom': '10px'})
     ]),
     
-    # Date range filter for the map
+    # Filter bar
     html.Div([
+        # Date picker
         dcc.DatePickerRange(
             id='date-filter',
             start_date=default_start,
@@ -200,58 +259,96 @@ app.layout = html.Div([
             display_format='YYYY-MM-DD',
             minimum_nights=0,
             style={'fontSize': '12px'}
-        )
+        ),
+        
+        # Categories side-by-side with species filtering
+        html.Div([
+            html.Div([
+                # Category header (icon + name above the box)
+                html.Div([
+                    html.Img(
+                        src=f"/assets/icons/{cat}.svg",
+                        height=20,
+                        style={"marginRight": "6px"},
+                    ),
+                    html.Span(cat, style={"fontSize": "13px", "fontWeight": "500"}),
+                ], style={
+                    "display": "flex",
+                    "alignItems": "center",
+                    "marginBottom": "8px",
+                    "justifyContent": "center",
+                }),
+                
+                # Details box with status and checklist
+                html.Details([
+                    dcc.Store(
+                        id={"type": "select-all-intent", "cat": cat},
+                        data=True,  # starts as "select all is active"
+                    ),
+                    # Summary showing the status
+                    html.Summary([
+                        html.Div(
+                            id={"type": "filter-status", "cat": cat},
+                            children="All selected",
+                            style={"fontSize": "12px", "fontWeight": "500"}
+                        ),
+                        html.Span("▾", className="dropdown-arrow"),
+                    ], className="dropdown-summary",
+                       style={"padding": "8px 10px", "cursor": "pointer"}),
+                    
+                    # Checklist body
+                    html.Div([
+                        dcc.Checklist(
+                            id={"type": "species-checklist", "cat": cat},
+                            options=[
+                                {"label": "Select all", "value": "__ALL__"}
+                            ] + [
+                                {
+                                    "label": f"{row['English name']} ({row['Latin name']})",
+                                    "value": row['ourID']
+                                }
+                                for _, row in plants[plants['Category'] == cat]
+                                .sort_values('English name')
+                                .iterrows()
+                            ],
+                            value=["__ALL__"] + plants.loc[
+                                plants["Category"] == cat, "ourID"
+                            ].tolist(),
+                            labelStyle={"display": "block"},
+                            style={
+                                "maxHeight": "200px",
+                                "overflowY": "auto",
+                                "fontSize": "11px",
+                                "paddingLeft": "8px",
+                            },
+                        ),
+                    ], style={"marginTop": "8px"}),
+                ], open=False, style={"width": "160px", "flex": "0 0 auto"}),
+            ], style={"display": "flex", "flexDirection": "column", "alignItems": "center", "margin": "9px"})
+            for cat in CATEGORIES
+        ], style={
+            "display": "flex",
+            "gap": "20px",
+            "flexWrap": "nowrap",
+            "marginTop": "12px",
+            "justifyContent": "center",
+            "paddingBottom": "4px",
+        }),
     ], style={'textAlign': 'left', 'marginBottom': '15px'}),
     
     # Hidden stores
-    dcc.Store(id='clicked-hexagon', data=None), # Which hexagon is currently clicked
-    dcc.Store(id='active-categories', data=CATEGORIES), #categories that are selected
-    dcc.Store(id='filtered-hex-data', data=None),  # Store filtered data to avoid recalculation
-    dcc.Store(id='back-button-clicks', data=0), # for the "back to top 10 species"
+    dcc.Store(id='clicked-hexagon', data=None),
+    dcc.Store(id='active-categories', data=CATEGORIES),
+    dcc.Store(
+        id="active-species-by-category",
+        data={cat: list(ALL_SPECIES_BY_CATEGORY[cat]) for cat in CATEGORIES}
+    ),
+    dcc.Store(id='filtered-hex-data', data=None),
+    dcc.Store(id='back-button-clicks', data=0),
+    dcc.Store(id='selected-month', data=None),
     
     # Main content
     html.Div([
-        # Category buttons (left sidebar)
-        html.Div([
-            html.Div(
-                [
-                    # Create category filter buttons using list comprehension, * is for unpacking list
-                    *[
-                        html.Button(
-                            [
-                                html.Img(src=f"/assets/icons/{cat}.svg", height=40, 
-                                        style={'verticalAlign': 'middle', 'marginRight': '8px'}),
-                                html.Span(cat, style={'verticalAlign': 'middle'})
-                            ],
-                            id={"type": "cat-btn", "cat": cat},
-                            n_clicks=1,
-                            className='cat-button selected',
-                            style={
-                                'width': '120px',
-                                'height': '48px',
-                                'display': 'flex',
-                                'alignItems': 'center',
-                                'justifyContent': 'flex-start',
-                                'padding': '0 8px',
-                                'boxSizing': 'border-box'
-                            }
-                        )
-                        for cat in CATEGORIES
-                    ], 
-
-                    # Select all / Deselect all button
-                    html.Div([
-                        html.Button(id='select-all-btn', n_clicks=0, className='btn-select')
-                    ], style={'display': 'flex', 'flexDirection': 'column', 'gap': '8px', 'marginTop': '12px'})
-                ],
-                style={'display': 'flex', 'flexDirection': 'column', 'gap': '8px', 'alignItems': 'center'}
-            )
-    
-        ], style={
-            'width': '80px',
-            'padding': '20px 10px'
-        }),
-        
         # Map
         html.Div([
             dcc.Graph(
@@ -262,18 +359,56 @@ app.layout = html.Div([
             )
         ], style={'width': '55%'}),
         
-        # Right column - Info panel
+        # Right column - Info panel with tabs
         html.Div([
-            html.Div(id='info-panel', children=[
-                html.Div([
-                    html.H4("Hexagon Details", style={'marginBottom': '20px'}),
-                    html.P("Click on a hexagon to see plant observation details", 
-                           style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '100px'})
-                ])
-            ], style={'position': 'sticky', 'top': '20px'})
+            dcc.Tabs(
+                id='tabs-styled-with-inline',
+                value='tab-1',
+                children=[
+                    dcc.Tab(
+                        label='Mini Map',
+                        value='tab-1',
+                        style=tab_style,
+                        selected_style=tab_selected_style,
+                        children=[
+                            html.Div([
+                                html.H4("Hexagon Details", style={'marginBottom': '20px'}),
+                                html.P(
+                                    "Click on a hexagon to see plant observation details",
+                                    style={
+                                        'color': '#6c757d',
+                                        'textAlign': 'center',
+                                        'marginTop': '100px'
+                                    }
+                                )
+                            ])
+                        ]
+                    ),
+                    dcc.Tab(
+                        label='Observation Periods',
+                        value='tab-2',
+                        style=tab_style,
+                        selected_style=tab_selected_style,
+                        children=[
+                            html.Div(id='tab-2-content', children=[
+                                html.H4("Observation Periods", style={'marginBottom': '20px'}),
+                                html.P(
+                                    "Click on a hexagon to see observation timeline",
+                                    style={
+                                        'color': '#6c757d',
+                                        'textAlign': 'center',
+                                        'marginTop': '100px'
+                                    }
+                                )
+                            ])
+                        ]
+                    )
+                ],
+                style={'position': 'sticky', 'top': '20px'}
+            )
         ], style={
-            'width': '35%', 
-            'borderLeft': '2px solid #dee2e6', 
+            'width': '35%',
+            'borderLeft': '2px solid #dee2e6',
             'paddingLeft': '20px'
         })
     ], style={'display': 'flex', 'gap': '20px', 'alignItems': 'flex-start'})
@@ -285,78 +420,115 @@ app.layout = html.Div([
 })
 
 # -------------------------
-# Callback to update select all/deselect all button text
+# Callback to collect species selections
 # -------------------------
 @app.callback(
-    Output('select-all-btn', 'children'),
-    [Input('active-categories', 'data')]
+    Output('active-species-by-category', 'data'),
+    Input({"type": "species-checklist", "cat": ALL}, "value"),
+    State({"type": "species-checklist", "cat": ALL}, "id")
 )
-def update_select_all_text(active_cats):
-    """Update button text based on whether all categories are selected"""
-    if active_cats is None:
-        active_cats = []
-    if set(active_cats) == set(CATEGORIES):
-        return "Deselect all"
-    else:
-        return "Select all"
+def store_species_by_category(values, ids):
+    species_by_cat = {}
+    for value, id_ in zip(values, ids):
+        species_by_cat[id_['cat']] = [v for v in (value or []) if v != "__ALL__"]
+    return species_by_cat
 
 # -------------------------
-# Callback to manage category selection state
+# Callback to update filter status display
+# -------------------------
+@app.callback(
+    Output({"type": "filter-status", "cat": ALL}, "children"),
+    Input({"type": "species-checklist", "cat": ALL}, "value"),
+    State({"type": "species-checklist", "cat": ALL}, "options"),
+    State({"type": "species-checklist", "cat": ALL}, "id"),
+)
+def update_filter_status(values, options_list, ids):
+    """Update the status text shown in the filter box"""
+    status_list = []
+    
+    for selected, options, id_ in zip(values, options_list, ids):
+        selected = selected or []
+        cat = id_['cat']
+        
+        # Get all species (excluding __ALL__)
+        all_species = [o["value"] for o in options if o["value"] != "__ALL__"]
+        selected_species = [v for v in selected if v != "__ALL__"]
+        
+        # Determine status text
+        if len(selected_species) == 0:
+            status = "None selected"
+        elif len(selected_species) == len(all_species):
+            status = "All selected"
+        elif len(selected_species) == 1:
+            # Get the species name
+            species_id = selected_species[0]
+            species_name = next((o["label"] for o in options if o["value"] == species_id), species_id)
+            # Extract just the English name (before the parenthesis)
+            species_name = species_name.split(" (")[0] if "(" in species_name else species_name
+            status = species_name
+        else:
+            status = f"Multiple selected"
+        
+        status_list.append(status)
+    
+    return status_list
+
+# -------------------------
+# Callback to handle select all per category
+# -------------------------
+@app.callback(
+    Output({"type": "species-checklist", "cat": ALL}, "value"),
+    Output({"type": "select-all-intent", "cat": ALL}, "data"),
+    Input({"type": "species-checklist", "cat": ALL}, "value"),
+    State({"type": "species-checklist", "cat": ALL}, "options"),
+    State({"type": "select-all-intent", "cat": ALL}, "data"),
+    prevent_initial_call=True,
+)
+def handle_select_all(values, options_list, intents):
+    results = []
+    new_intents = []
+
+    for selected, options, intent in zip(values, options_list, intents):
+        selected = selected or []
+
+        species = [o["value"] for o in options if o["value"] != "__ALL__"]
+        species_selected = [v for v in selected if v != "__ALL__"]
+
+        has_all = "__ALL__" in selected
+
+        # User explicitly checked "Select all"
+        if has_all and not intent:
+            results.append(["__ALL__"] + species)
+            new_intents.append(True)
+            continue
+
+        # User explicitly unchecked "Select all"
+        if not has_all and intent and set(species_selected) == set(species):
+            results.append([])
+            new_intents.append(False)
+            continue
+
+        # Partial select / deselect
+        if set(species_selected) == set(species):
+            results.append(["__ALL__"] + species)
+            new_intents.append(True)
+        else:
+            results.append(species_selected)
+            new_intents.append(False)
+
+    return results, new_intents
+
+# -------------------------
+# Callback to update active categories
 # -------------------------
 @app.callback(
     Output("active-categories", "data"),
-    Input({"type": "cat-btn", "cat": ALL}, "n_clicks"),
-    Input('select-all-btn', 'n_clicks'),
-    State("active-categories", "data"),
-    State({"type": "cat-btn", "cat": ALL}, "id"),
+    Input("active-species-by-category", "data"),
 )
-def toggle_categories(n_clicks_list, select_all_clicks, active_cats, ids):
-    """Manage which categories are currently active based on button clicks"""
-    # Find which button triggered the callback
-    ctx = dash.callback_context
-    if not ctx.triggered:
-        return active_cats
-
-    triggered = ctx.triggered_id
-    
-    # Initialize empty list if needed
-    if active_cats is None:
-        active_cats = []
-
-    # Handle Select all/Deselect all button
-    if isinstance(triggered, str) and triggered == 'select-all-btn':
-        if set(active_cats) == set(CATEGORIES):
-            return []  # Deselect all
-        else:
-            return CATEGORIES  # Select all
-
-    # Handle individual category button toggle
-    if isinstance(triggered, dict):
-        cat = triggered.get('cat')
-        # Just for robustness
-        if cat is None:
-            return active_cats
-
-        # Toggle category: remove if active, add if inactive
-        if cat in active_cats:
-            return [c for c in active_cats if c != cat]
-        else:
-            return active_cats + [cat]
-
-    return active_cats
-
-# -------------------------
-# Callback to update button visual styles (active/inactive)
-# -------------------------
-@app.callback(
-    Output({"type": "cat-btn", "cat": ALL}, "className"),
-    [Input('active-categories', 'data')]
-)
-def update_button_classes(selected):
-    """Update CSS classes for category buttons based on selection state"""
-    if selected is None:
-        selected = []
-    return ['cat-button selected' if cat in selected else 'cat-button' for cat in CATEGORIES]
+def update_active_categories(species_by_cat):
+    if not species_by_cat:
+        return []
+    return [cat for cat, species in species_by_cat.items() if species]
 
 # -------------------------
 # Callback to store clicked hexagon
@@ -377,17 +549,26 @@ def store_clicked_hexagon(clickData):
 @app.callback(
     Output('filtered-hex-data', 'data'),
     [Input('active-categories', 'data'),
+     Input('active-species-by-category', 'data'),
      Input('date-filter', 'start_date'),
      Input('date-filter', 'end_date')]
 )
-def store_filtered_data(selected_categories, start_date, end_date):
+def store_filtered_data(selected_categories, species_by_cat, start_date, end_date):
     """Store filtered observations to avoid recalculating in multiple callbacks"""
     if not selected_categories:
         return None
     
-    # Filter observations based on selected categories
-    filtered_plants = plants[plants['Category'].isin(selected_categories)]
-    filtered_observations = observations[observations['ourID'].isin(filtered_plants['ourID'])]
+    # Collect allowed species based on selections
+    allowed_species = set()
+    for cat in selected_categories:
+        selected_species = species_by_cat.get(cat, [])
+        if selected_species:
+            allowed_species.update(selected_species)
+        else:
+            allowed_species.update(plants.loc[plants['Category'] == cat, 'ourID'])
+    
+    # Filter observations
+    filtered_observations = observations[observations['ourID'].isin(allowed_species)]
     
     # Filter by date range
     filtered_observations = apply_date_filter(filtered_observations, start_date, end_date)
@@ -436,7 +617,7 @@ def update_map(filtered_data, clicked_hex, relayoutData):
             center=center
         )
         # Add invisible marker to maintain colorbar
-        empty_fig.add_trace(go.Scattermapbox(
+        empty_fig.add_trace(go.Scattermap(
             lat=[center['lat']],
             lon=[center['lon']],
             mode='markers',
@@ -453,9 +634,9 @@ def update_map(filtered_data, clicked_hex, relayoutData):
         ))
         empty_fig.update_layout(
             margin=MAP_CONFIG['margin'],
-            mapbox_style=MAP_CONFIG['map_style'],
-            mapbox_center=center,
-            mapbox_zoom=zoom
+            map_style=MAP_CONFIG['map_style'],
+            map_center=center,
+            map_zoom=zoom
         )
         return empty_fig
     
@@ -467,6 +648,13 @@ def update_map(filtered_data, clicked_hex, relayoutData):
     
     # Recalculate hexagon aggregations
     filtered_obs_by_hex = aggregate_by_hex(filtered_observations)
+    
+    # Build hover content with category breakdown
+    category_counts = category_counts_by_hex(filtered_observations, plants)
+    hover_text_map = build_hover_text(category_counts)
+    filtered_obs_by_hex["hover_text"] = (
+        filtered_obs_by_hex["h3_cell"].map(hover_text_map).fillna("")
+    )
     
     # Create GeoJSON
     filtered_geojson = hexagons_dataframe_to_geojson(
@@ -480,7 +668,8 @@ def update_map(filtered_data, clicked_hex, relayoutData):
     new_fig = px.choropleth_map(
         filtered_obs_by_hex, 
         geojson=filtered_geojson, 
-        locations='h3_cell', 
+        locations='h3_cell',
+        custom_data=["hover_text"],
         color=MAP_CONFIG['color'],
         color_continuous_scale=MAP_CONFIG['color_continous_scale'],
         range_color=(0, filtered_obs_by_hex['count'].quantile(0.9)),                  
@@ -496,6 +685,11 @@ def update_map(filtered_data, clicked_hex, relayoutData):
         margin=MAP_CONFIG['margin'],
         coloraxis_colorbar=MAP_CONFIG['colorbar_config'],
         uirevision='constant'
+    )
+    
+    # Update hover template
+    new_fig.update_traces(
+        hovertemplate="<b>Observations by category</b><br>%{customdata[0]}<extra></extra>"
     )
     
     # Add marker for clicked hexagon
@@ -521,135 +715,163 @@ def update_map(filtered_data, clicked_hex, relayoutData):
     return new_fig
 
 # -------------------------
-# Callback to update info panel
+# Callback to update info panel (Tab 1)
 # -------------------------
 @app.callback(
-    Output('info-panel', 'children'),
+    Output('tabs-styled-with-inline', 'children'),
     [Input('plant-map', 'clickData'),
      Input('active-categories', 'data'),
      Input('filtered-hex-data', 'data')]
 )
 def update_info_panel(clickData, selected_categories, filtered_data):
     """Update info panel with hexagon details, mini-map, and species list"""
+    
+    # Define Tab 1 content
     if clickData is None:
-        return html.Div([
+        tab1_content = html.Div([
             html.H4("Hexagon Details", style={'marginBottom': '20px'}),
             html.P("Click on a hexagon to see plant observation details", 
                    style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '100px'})
         ])
-    
-    if not selected_categories or filtered_data is None:
-        return html.Div([
+    elif not selected_categories or filtered_data is None:
+        tab1_content = html.Div([
             html.H4("Hexagon Details"),
             html.P("No observations in selected categories", 
                    style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
         ])
-
-    h3_cell = clickData['points'][0]['location']
-    
-    # Reconstruct filtered observations
-    filtered_observations = pd.DataFrame({
-        'h3_cell': filtered_data['h3_cells'],
-        'ourID': filtered_data['ourIDs'],
-        'decimalLatitude': filtered_data['lats'],
-        'decimalLongitude': filtered_data['lons'],
-        'eventDate': pd.to_datetime(filtered_data['dates'])
-    })
-    
-    # Get observations within ONLY the clicked hexagon (for stats)
-    hex_observations_stats = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
-    
-    # Merge with plant data for stats
-    hex_obs_with_plants_stats = hex_observations_stats.merge(plants, on='ourID', how='left')
-    hex_obs_with_plants_stats = hex_obs_with_plants_stats[hex_obs_with_plants_stats['Category'].isin(selected_categories)]
-    
-    observation_count = len(hex_obs_with_plants_stats)
-    unique_species = hex_obs_with_plants_stats['ourID'].nunique()
-    
-    if observation_count == 0:
-        return html.Div([
-            html.H5("Hexagon Details"),
-            html.P("No observations in selected categories for this hexagon", 
-                   style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
-        ])
-    
-    center = h3.cell_to_latlng(h3_cell)
-    
-    # Get neighbors for mini-map display
-    neighbors = set(h3.grid_ring(h3_cell, 1))
-    neighbors.add(h3_cell)
-    
-    # Get observations within hexagon and neighbors (for mini-map)
-    hex_observations = filtered_observations[filtered_observations['h3_cell'].isin(neighbors)].copy()
-    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
-    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
-
-    # Create mini-map
-    if not hex_obs_with_plants.empty:
-        fig = px.scatter_map(
-            hex_obs_with_plants,
-            lat='decimalLatitude',
-            lon='decimalLongitude',
-            color='Category',
-            hover_name='English name',
-            zoom=10,
-            height=250,
-            center={"lat": center[0], "lon": center[1]}
-        )
-
-        # Add hexagon outline
-        hex_geom = add_geometry({'h3_cell': h3_cell})
-        fig.add_scattermap(
-            lat=[pt[1] for pt in hex_geom.exterior.coords],
-            lon=[pt[0] for pt in hex_geom.exterior.coords],
-            mode='lines',
-            fill='toself',
-            fillcolor='rgba(255,0,0,0.08)',
-            line=dict(color='rgba(255,0,0,0.3)', width=1.5),
-            showlegend=False,
-            hoverinfo='skip'
-        )
-
-        fig.update_layout(
-            map_style='carto-positron', 
-            margin=dict(l=0, r=0, t=0, b=0)
-        )
     else:
-        fig = go.Figure()
+        h3_cell = clickData['points'][0]['location']
+        
+        # Reconstruct filtered observations
+        filtered_observations = pd.DataFrame({
+            'h3_cell': filtered_data['h3_cells'],
+            'ourID': filtered_data['ourIDs'],
+            'decimalLatitude': filtered_data['lats'],
+            'decimalLongitude': filtered_data['lons'],
+            'eventDate': pd.to_datetime(filtered_data['dates'])
+        })
+        
+        # Get observations within ONLY the clicked hexagon (for stats)
+        hex_observations_stats = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
+        
+        # Merge with plant data for stats
+        hex_obs_with_plants_stats = hex_observations_stats.merge(plants, on='ourID', how='left')
+        hex_obs_with_plants_stats = hex_obs_with_plants_stats[hex_obs_with_plants_stats['Category'].isin(selected_categories)]
+        
+        observation_count = len(hex_obs_with_plants_stats)
+        unique_species = hex_obs_with_plants_stats['ourID'].nunique()
+        
+        if observation_count == 0:
+            tab1_content = html.Div([
+                html.H5("Hexagon Details"),
+                html.P("No observations in selected categories for this hexagon", 
+                       style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
+            ])
+        else:
+            center = h3.cell_to_latlng(h3_cell)
+            
+            # Get neighbors for mini-map display
+            neighbors = set(h3.grid_ring(h3_cell, 1))
+            neighbors.add(h3_cell)
+            
+            # Get observations within hexagon and neighbors (for mini-map)
+            hex_observations = filtered_observations[filtered_observations['h3_cell'].isin(neighbors)].copy()
+            hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+            hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
 
-    # Get top 10 species by count (from clicked hexagon only)
-    species_counts = hex_obs_with_plants_stats['English name'].value_counts().head(10)
-    
-    return html.Div([
-        # Header with hexagon center coordinates
-        html.Div([
-            html.H5("Hexagon Details", style={'display': 'inline-block', 'marginRight': '15px', 'marginBottom': '0'}),
-            html.Span(f"Center: {center[0]:.4f}°, {center[1]:.4f}°", 
-                     style={'fontSize': '12px', 'color': '#555'}),
-            html.Span(" | ", style={'margin': '0 8px', 'color': '#dee2e6'}),
-            html.Span(f"Observations: {observation_count}", 
-                     style={'fontSize': '12px'}),
-            html.Span(" | ", style={'margin': '0 8px', 'color': '#dee2e6'}),
-            html.Span(f"Species: {unique_species}", 
-                     style={'fontSize': '12px'})
-        ], style={'marginBottom': '10px'}),
-        
-        # Mini-map with clickable observations
-        dcc.Graph(id='mini-map', figure=fig, config={'displayModeBar': False}),
-        
-        # Placeholder for observation details
-        html.Div(id='observation-details', children=[
-            html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
-            html.Div([
+            # Create mini-map
+            if not hex_obs_with_plants.empty:
+                fig = px.scatter_map(
+                    hex_obs_with_plants,
+                    lat='decimalLatitude',
+                    lon='decimalLongitude',
+                    color='Category',
+                    color_discrete_map=CATEGORY_COLORS,
+                    category_orders={"Category": CATEGORIES},
+                    hover_name='English name',
+                    zoom=10,
+                    height=250,
+                    center={"lat": center[0], "lon": center[1]}
+                )
+
+                # Add hexagon outline
+                hex_geom = add_geometry({'h3_cell': h3_cell})
+                fig.add_scattermap(
+                    lat=[pt[1] for pt in hex_geom.exterior.coords],
+                    lon=[pt[0] for pt in hex_geom.exterior.coords],
+                    mode='lines',
+                    fill='toself',
+                    fillcolor='rgba(255,0,0,0.08)',
+                    line=dict(color='rgba(255,0,0,0.3)', width=1.5),
+                    showlegend=False,
+                    hoverinfo='skip'
+                )
+
+                fig.update_layout(
+                    map_style='carto-positron', 
+                    margin=dict(l=0, r=0, t=0, b=0)
+                )
+            else:
+                fig = go.Figure()
+
+            # Get top 10 species by count (from clicked hexagon only)
+            species_counts = hex_obs_with_plants_stats['English name'].value_counts().head(10)
+            
+            tab1_content = html.Div([
+                # Header with hexagon center coordinates
                 html.Div([
-                    html.Strong(species, style={'fontSize': '12px'}),
-                    html.Span(f" ({count})", 
-                             style={'color': '#6c757d', 'marginLeft': '6px', 'fontSize': '11px'})
-                ], style={'marginBottom': '6px'})
-                for species, count in species_counts.items()
-            ], style={'maxHeight': '200px', 'overflowY': 'auto'})
-        ])
-    ], style={'padding': '10px'})
+                    html.H5("Hexagon Details", style={'display': 'inline-block', 'marginRight': '15px', 'marginBottom': '0'}),
+                    html.Span(f"Center: {center[0]:.4f}°, {center[1]:.4f}°", 
+                             style={'fontSize': '12px', 'color': '#555'}),
+                    html.Span(" | ", style={'margin': '0 8px', 'color': '#dee2e6'}),
+                    html.Span(f"Observations: {observation_count}", 
+                             style={'fontSize': '12px'}),
+                    html.Span(" | ", style={'margin': '0 8px', 'color': '#dee2e6'}),
+                    html.Span(f"Species: {unique_species}", 
+                             style={'fontSize': '12px'})
+                ], style={'marginBottom': '10px'}),
+                
+                # Mini-map with clickable observations
+                dcc.Graph(id='mini-map', figure=fig, config={'displayModeBar': False}),
+                
+                # Placeholder for observation details
+                html.Div(id='observation-details', children=[
+                    html.H5("Top 10 Species", style={'marginTop': '15px', 'marginBottom': '10px'}),
+                    html.Div([
+                        html.Div([
+                            html.Strong(species, style={'fontSize': '12px'}),
+                            html.Span(f" ({count})", 
+                                     style={'color': '#6c757d', 'marginLeft': '6px', 'fontSize': '11px'})
+                        ], style={'marginBottom': '6px'})
+                        for species, count in species_counts.items()
+                    ], style={'maxHeight': '200px', 'overflowY': 'auto'})
+                ])
+            ], style={'padding': '10px'})
+    
+    # Define Tab 2 content placeholder (will be updated by separate callback)
+    tab2_content = html.Div(id='tab-2-content', children=[
+        html.H4("Observation Periods", style={'marginBottom': '20px'}),
+        html.P("Click on a hexagon to see observation timeline", 
+               style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '100px'})
+    ])
+    
+    # Return both tabs
+    return [
+        dcc.Tab(
+            label='Mini Map',
+            value='tab-1',
+            style=tab_style,
+            selected_style=tab_selected_style,
+            children=[tab1_content]
+        ),
+        dcc.Tab(
+            label='Observation Periods',
+            value='tab-2',
+            style=tab_style,
+            selected_style=tab_selected_style,
+            children=[tab2_content]
+        )
+    ]
 
 # -------------------------
 # Callback to handle back button clicks
@@ -718,7 +940,7 @@ def update_minimap(main_click, filtered_data):
             'decimalLatitude': False,
             'decimalLongitude': False
         },
-        custom_data=['ourID'],
+        custom_data=['ourID', 'Category', 'formatted_date'],
         zoom=10,
         height=250,
         center={"lat": center[0], "lon": center[1]}
@@ -729,8 +951,7 @@ def update_minimap(main_click, filtered_data):
         hovertemplate='<b>%{hovertext}</b><br>' +
                       'Category: %{customdata[1]}<br>' +
                       'Date: %{customdata[2]}<br>' +
-                      '<extra></extra>',
-        customdata=hex_obs_with_plants[['ourID', 'Category', 'formatted_date']].values
+                      '<extra></extra>'
     )
     
     fig.update_layout(
@@ -906,6 +1127,465 @@ def update_observation_details(minimap_click, back_count, main_click, filtered_d
             
         ], style={'padding': '10px', 'backgroundColor': '#f8f9fa', 'borderRadius': '5px'})
     ])
+
+# -------------------------
+# Callback to update Tab 2 content (histogram)
+# -------------------------
+@app.callback(
+    Output('tab-2-content', 'children'),
+    [Input('plant-map', 'clickData'),
+     Input('active-categories', 'data'),
+     Input('filtered-hex-data', 'data'),
+     Input('selected-month', 'data')]
+)
+def update_tab2_histogram(clickData, selected_categories, filtered_data, selected_month):
+    """Update Tab 2 with histogram of observations over time by category"""
+    if clickData is None:
+        return html.Div([
+            html.H4("Observation Periods", style={'marginBottom': '20px'}),
+            html.P("Click on a hexagon to see observation timeline", 
+                   style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '100px'})
+        ])
+    
+    if not selected_categories or filtered_data is None:
+        return html.Div([
+            html.H4("Observation Periods"),
+            html.P("No observations in selected categories", 
+                   style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
+        ])
+
+    h3_cell = clickData['points'][0]['location']
+    
+    # Reconstruct filtered observations
+    filtered_observations = pd.DataFrame({
+        'h3_cell': filtered_data['h3_cells'],
+        'ourID': filtered_data['ourIDs'],
+        'decimalLatitude': filtered_data['lats'],
+        'decimalLongitude': filtered_data['lons'],
+        'eventDate': pd.to_datetime(filtered_data['dates'])
+    })
+    
+    # Get observations for the clicked hexagon
+    hex_observations = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
+    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
+    
+    if hex_obs_with_plants.empty:
+        return html.Div([
+            html.H4("Observation Periods"),
+            html.P("No observations in this hexagon for selected categories", 
+                   style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
+        ])
+    
+    # Check if we're drilling down into a specific month
+    is_drilldown = selected_month is not None
+    
+    if is_drilldown:
+        # Filter to selected month range
+        selected_start = pd.to_datetime(selected_month['start'])
+        selected_end = pd.to_datetime(selected_month['end'])
+        
+        hex_obs_with_plants = hex_obs_with_plants[
+            (hex_obs_with_plants['eventDate'] >= selected_start) & 
+            (hex_obs_with_plants['eventDate'] <= selected_end)
+        ]
+        
+        if hex_obs_with_plants.empty:
+            return html.Div([
+                html.H4("Observation Periods"),
+                html.P("No observations in selected period", 
+                       style={'color': '#6c757d', 'textAlign': 'center', 'marginTop': '50px'})
+            ])
+        
+        # Format title based on period length
+        if selected_start.month == selected_end.month and selected_start.year == selected_end.year:
+            period_label = selected_start.strftime("%B %Y")
+        else:
+            period_label = f"{selected_start.strftime('%b %Y')} - {selected_end.strftime('%b %Y')}"
+        
+        # Create daily histogram for the selected period
+        hex_obs_with_plants['day'] = hex_obs_with_plants['eventDate'].dt.date
+        
+        fig = px.histogram(
+            hex_obs_with_plants,
+            x='day',
+            color='Category',
+            color_discrete_map=CATEGORY_COLORS,
+            category_orders={"Category": CATEGORIES},
+            labels={'day': 'Date', 'count': 'Number of Observations'},
+            title=f'Daily Observations for {period_label} ({len(hex_obs_with_plants)} total)'
+        )
+        
+        fig.update_xaxes(
+            tickformat='%b %d',  # Show month and day
+            tickangle=-45,
+            title="Date"
+        )
+        
+        # Add back button info
+        back_button = html.Button(
+            "← Back to Monthly View",
+            id={'type': 'back-to-monthly-btn', 'index': 0},
+            n_clicks=0,
+            style={
+                'marginBottom': '10px',
+                'padding': '6px 12px',
+                'fontSize': '12px',
+                'backgroundColor': '#f8f9fa',
+                'border': '1px solid #dee2e6',
+                'borderRadius': '4px',
+                'cursor': 'pointer'
+            }
+        )
+    else:
+        # Create month-year column for grouping
+        hex_obs_with_plants['month_year'] = hex_obs_with_plants['eventDate'].dt.to_period('M').dt.to_timestamp()
+        
+        # Count observations per month to determine appropriate number of bins
+        monthly_counts = hex_obs_with_plants.groupby('month_year').size()
+        num_months = len(monthly_counts)
+        
+        # Determine number of bins based on data span
+        # Use fewer bins if data spans many months to avoid overcrowding
+        if num_months <= 12:
+            nbins = num_months  # One bin per month
+        elif num_months <= 24:
+            nbins = 12  # Group into ~12 bins
+        elif num_months <= 36:
+            nbins = 18  # Group into ~18 bins
+        else:
+            nbins = 24  # Group into ~24 bins (about 2 years worth)
+        
+        # Create monthly histogram
+        fig = px.histogram(
+            hex_obs_with_plants,
+            x='eventDate',  # Use eventDate instead of month_year to let Plotly handle binning
+            color='Category',
+            color_discrete_map=CATEGORY_COLORS,
+            category_orders={"Category": CATEGORIES},
+            nbins=nbins,
+            labels={'eventDate': 'Observation Date', 'count': 'Number of Observations'},
+            title=f'Observations Over Time ({len(hex_obs_with_plants)} total)'
+        )
+        
+        fig.update_xaxes(
+            tickformat='%b %Y',  # Format as "Jan 2023"
+            tickangle=-45
+        )
+        
+        back_button = None
+    
+    fig.update_layout(
+        height=400,
+        margin=dict(l=40, r=20, t=40, b=40),
+        xaxis_title="Date",
+        yaxis_title="Count",
+        legend_title="Category",
+        hovermode='x unified'
+    )
+    
+    # Smart y-axis scaling based on max count
+    max_count = hex_obs_with_plants.groupby(hex_obs_with_plants['month_year'] if not is_drilldown else hex_obs_with_plants['day']).size().max()
+    
+    if max_count <= 10:
+        # For small counts, show every integer
+        fig.update_yaxes(dtick=1, tickformat='d')
+    elif max_count <= 20:
+        # Show every 2
+        fig.update_yaxes(dtick=2, tickformat='d')
+    elif max_count <= 50:
+        # Show every 5
+        fig.update_yaxes(dtick=5, tickformat='d')
+    elif max_count <= 100:
+        # Show every 10
+        fig.update_yaxes(dtick=10, tickformat='d')
+    elif max_count <= 200:
+        # Show every 20
+        fig.update_yaxes(dtick=20, tickformat='d')
+    else:
+        # For larger counts, let Plotly auto-scale but ensure integers
+        fig.update_yaxes(tickformat='d')
+    
+    fig.update_traces(
+        hovertemplate='%{y} observations<extra></extra>'
+    )
+    
+    # Summary statistics by category
+    category_counts = hex_obs_with_plants['Category'].value_counts()
+    
+    center = h3.cell_to_latlng(h3_cell)
+    
+    # Build the content
+    content = [
+        # Header
+        html.Div([
+            html.H5("Observation Periods", style={'display': 'inline-block', 'marginRight': '15px', 'marginBottom': '0'}),
+            html.Span(f"Center: {center[0]:.4f}°, {center[1]:.4f}°", 
+                     style={'fontSize': '12px', 'color': '#555'})
+        ], style={'marginBottom': '15px'}),
+    ]
+    
+    # Add back button if in drilldown mode
+    if back_button:
+        content.append(back_button)
+    
+    # Add instruction text for monthly view
+    if not is_drilldown:
+        content.append(
+            html.P("Click on a bar to see daily breakdown for that month", 
+                   style={'fontSize': '11px', 'color': '#6c757d', 'fontStyle': 'italic', 'marginBottom': '10px'})
+        )
+    
+    content.extend([
+        # Histogram
+        dcc.Graph(id='observation-histogram', figure=fig, config={'displayModeBar': False}),
+        
+        # Category breakdown with expandable species lists
+        html.Div([
+            html.H6("Category Breakdown", style={'marginTop': '15px', 'marginBottom': '10px'}),
+            html.Div([
+                html.Div([
+                    # Category header (clickable)
+                    html.Div([
+                        html.Button(
+                            [
+                                html.Span("▶", id={'type': 'arrow', 'category': cat}, 
+                                         style={'display': 'inline-block', 'marginRight': '8px', 
+                                               'fontSize': '10px', 'transition': 'transform 0.2s'}),
+                                html.Div(
+                                    style={
+                                        'width': '12px',
+                                        'height': '12px',
+                                        'backgroundColor': CATEGORY_COLORS.get(cat, '#999'),
+                                        'display': 'inline-block',
+                                        'marginRight': '8px',
+                                        'verticalAlign': 'middle'
+                                    }
+                                ),
+                                html.Span(cat, style={'fontSize': '12px', 'verticalAlign': 'middle'}),
+                                html.Span(f" ({count})", 
+                                         style={'color': '#6c757d', 'marginLeft': '6px', 'fontSize': '11px'})
+                            ],
+                            id={'type': 'category-toggle', 'category': cat},
+                            n_clicks=0,
+                            style={
+                                'width': '100%',
+                                'textAlign': 'left',
+                                'backgroundColor': 'transparent',
+                                'border': 'none',
+                                'padding': '4px 0',
+                                'cursor': 'pointer',
+                                'display': 'flex',
+                                'alignItems': 'center'
+                            }
+                        )
+                    ], style={'marginBottom': '4px'}),
+                    # Species list (initially hidden)
+                    html.Div(
+                        id={'type': 'species-list', 'category': cat},
+                        style={'display': 'none', 'paddingLeft': '24px', 'marginTop': '4px'}
+                    )
+                ], style={'marginBottom': '8px'})
+                for cat, count in category_counts.items()
+            ])
+        ], style={'padding': '10px', 'backgroundColor': '#f8f9fa', 'borderRadius': '5px'})
+    ])
+    
+    return html.Div(content, style={'padding': '10px'})
+
+
+# Add this new callback to handle clicking on histogram bars:
+
+@app.callback(
+    Output('selected-month', 'data'),
+    Input('observation-histogram', 'clickData'),
+    [State('selected-month', 'data'),
+     State('filtered-hex-data', 'data'),
+     State('plant-map', 'clickData'),
+     State('active-categories', 'data')],
+    prevent_initial_call=True
+)
+def handle_histogram_click(clickData, current_month, filtered_data, main_click, selected_categories):
+    """Handle clicks on histogram bars to drill down to daily view"""
+    if not clickData or not filtered_data or not main_click:
+        return current_month
+    
+    # If we're already in drilldown mode (daily view), don't drill down further
+    if current_month is not None:
+        return current_month
+    
+    h3_cell = main_click['points'][0]['location']
+    
+    # Reconstruct the same data that created the histogram
+    filtered_observations = pd.DataFrame({
+        'h3_cell': filtered_data['h3_cells'],
+        'ourID': filtered_data['ourIDs'],
+        'eventDate': pd.to_datetime(filtered_data['dates'])
+    })
+    
+    hex_observations = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
+    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
+    
+    # Sort by date
+    hex_obs_with_plants = hex_obs_with_plants.sort_values('eventDate')
+    
+    # Get the clicked point
+    clicked_point = clickData['points'][0]
+    clicked_x = pd.to_datetime(clicked_point['x'])
+    
+    # Get the full time range
+    min_date = hex_obs_with_plants['eventDate'].min()
+    max_date = hex_obs_with_plants['eventDate'].max()
+    total_days = (max_date - min_date).days + 1
+    
+    # Calculate number of bins (same logic as in the histogram creation)
+    hex_obs_with_plants['month_year'] = hex_obs_with_plants['eventDate'].dt.to_period('M').dt.to_timestamp()
+    monthly_counts = hex_obs_with_plants.groupby('month_year').size()
+    num_months = len(monthly_counts)
+    
+    if num_months <= 12:
+        nbins = num_months
+    elif num_months <= 24:
+        nbins = 12
+    elif num_months <= 36:
+        nbins = 18
+    else:
+        nbins = 24
+    
+    # Calculate bin width
+    bin_width_days = total_days / nbins if nbins > 0 else 30
+    
+    # Calculate which bin was clicked based on the x position
+    days_from_start = (clicked_x - min_date).days
+    bin_index = int(days_from_start / bin_width_days)
+    
+    # Calculate the actual bin boundaries
+    bin_start = min_date + pd.Timedelta(days=bin_index * bin_width_days)
+    bin_end = min_date + pd.Timedelta(days=(bin_index + 1) * bin_width_days)
+    
+    # Ensure bin_end doesn't exceed max_date
+    if bin_end > max_date:
+        bin_end = max_date
+    
+    # Get all observations within this bin
+    bin_obs = hex_obs_with_plants[
+        (hex_obs_with_plants['eventDate'] >= bin_start) & 
+        (hex_obs_with_plants['eventDate'] <= bin_end)
+    ]
+    
+    if bin_obs.empty:
+        # Fallback to a single month
+        bin_start = clicked_x.replace(day=1)
+        bin_end = bin_start + pd.offsets.MonthEnd(0)
+    else:
+        # Use actual min/max dates from observations in the bin
+        actual_start = bin_obs['eventDate'].min()
+        actual_end = bin_obs['eventDate'].max()
+        
+        # Round to month boundaries for cleaner display
+        bin_start = actual_start.replace(day=1)
+        bin_end = actual_end.replace(day=1) + pd.offsets.MonthEnd(0)
+    
+    return {
+        'start': bin_start.isoformat(),
+        'end': bin_end.isoformat()
+    }
+
+
+# Add this callback to handle the back button:
+
+@app.callback(
+    Output('selected-month', 'data', allow_duplicate=True),
+    Input({'type': 'back-to-monthly-btn', 'index': ALL}, 'n_clicks'),
+    prevent_initial_call=True
+)
+def handle_back_to_monthly(n_clicks_list):
+    """Handle back button click to return to monthly view"""
+    if any(n_clicks_list):
+        return None
+    return dash.no_update
+
+# -------------------------
+# Callback to toggle category species lists in Tab 2
+# -------------------------
+@app.callback(
+    [Output({'type': 'species-list', 'category': ALL}, 'style'),
+     Output({'type': 'species-list', 'category': ALL}, 'children'),
+     Output({'type': 'arrow', 'category': ALL}, 'style')],
+    [Input({'type': 'category-toggle', 'category': ALL}, 'n_clicks')],
+    [State({'type': 'category-toggle', 'category': ALL}, 'id'),
+     State('plant-map', 'clickData'),
+     State('filtered-hex-data', 'data'),
+     State('active-categories', 'data')]
+)
+def toggle_species_list(n_clicks_list, button_ids, clickData, filtered_data, selected_categories):
+    """Toggle visibility of species lists within each category"""
+    if not button_ids or clickData is None or filtered_data is None:
+        return [{'display': 'none'}] * len(button_ids), [[]] * len(button_ids), [{'display': 'inline-block', 'marginRight': '8px', 'fontSize': '10px', 'transition': 'transform 0.2s'}] * len(button_ids)
+    
+    h3_cell = clickData['points'][0]['location']
+    
+    # Reconstruct filtered observations
+    filtered_observations = pd.DataFrame({
+        'h3_cell': filtered_data['h3_cells'],
+        'ourID': filtered_data['ourIDs'],
+        'decimalLatitude': filtered_data['lats'],
+        'decimalLongitude': filtered_data['lons'],
+        'eventDate': pd.to_datetime(filtered_data['dates'])
+    })
+    
+    hex_observations = filtered_observations[filtered_observations['h3_cell'] == h3_cell].copy()
+    hex_obs_with_plants = hex_observations.merge(plants, on='ourID', how='left')
+    hex_obs_with_plants = hex_obs_with_plants[hex_obs_with_plants['Category'].isin(selected_categories)]
+    
+    styles = []
+    contents = []
+    arrow_styles = []
+    
+    for i, button_id in enumerate(button_ids):
+        cat = button_id['category']
+        n_clicks = n_clicks_list[i] if i < len(n_clicks_list) else 0
+        
+        # Toggle display based on number of clicks (odd = expanded, even = collapsed)
+        is_expanded = n_clicks and n_clicks % 2 == 1
+        
+        if is_expanded:
+            styles.append({'display': 'block', 'paddingLeft': '24px', 'marginTop': '4px'})
+            arrow_styles.append({
+                'display': 'inline-block', 
+                'marginRight': '8px', 
+                'fontSize': '10px', 
+                'transition': 'transform 0.2s',
+                'transform': 'rotate(90deg)'
+            })
+            
+            # Get species for this category
+            cat_obs = hex_obs_with_plants[hex_obs_with_plants['Category'] == cat]
+            species_counts = cat_obs['English name'].value_counts()
+            
+            # Create species list
+            species_items = [
+                html.Div([
+                    html.Span('• ', style={'marginRight': '4px', 'color': '#6c757d'}),
+                    html.Span(species, style={'fontSize': '11px'}),
+                    html.Span(f" ({count})", 
+                             style={'color': '#999', 'marginLeft': '4px', 'fontSize': '10px'})
+                ], style={'marginBottom': '3px'})
+                for species, count in species_counts.items()
+            ]
+            contents.append(species_items)
+        else:
+            styles.append({'display': 'none', 'paddingLeft': '24px', 'marginTop': '4px'})
+            arrow_styles.append({
+                'display': 'inline-block', 
+                'marginRight': '8px', 
+                'fontSize': '10px', 
+                'transition': 'transform 0.2s'
+            })
+            contents.append([])
+    
+    return styles, contents, arrow_styles
 
 
 if __name__ == '__main__':
