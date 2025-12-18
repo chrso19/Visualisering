@@ -250,15 +250,33 @@ app.layout = html.Div([
     # Filter bar
     html.Div([
         # Date picker
-        dcc.DatePickerRange(
-            id='date-filter',
-            start_date=default_start,
-            end_date=default_end,
-            min_date_allowed=min_date_allowed,
-            max_date_allowed=max_date_allowed,
-            display_format='YYYY-MM-DD',
-            minimum_nights=0,
-            style={'fontSize': '12px'}
+        html.Div(
+            [
+                html.Div(
+                    "Select date range",
+                    style={
+                        "fontSize": "14px",
+                        "fontWeight": "600",
+                        "marginBottom": "6px",
+                        "color": "#444",
+                    },
+                ),
+                dcc.DatePickerRange(
+                    id='date-filter',
+                    start_date=default_start,
+                    end_date=default_end,
+                    min_date_allowed=min_date_allowed,
+                    max_date_allowed=max_date_allowed,
+                    display_format='YYYY-MM-DD',
+                    minimum_nights=0,
+                    style={'fontSize': '12px'}
+                ),
+            ],
+            style={
+                "display": "flex",
+                "flexDirection": "column",
+                "alignItems": "flex-start",
+            },
         ),
         
         # Categories side-by-side with species filtering
@@ -271,7 +289,7 @@ app.layout = html.Div([
                         height=20,
                         style={"marginRight": "6px"},
                     ),
-                    html.Span(cat, style={"fontSize": "13px", "fontWeight": "500"}),
+                    html.Span(cat, style={"fontSize": "16px", "fontWeight": "500"}),
                 ], style={
                     "display": "flex",
                     "alignItems": "center",
