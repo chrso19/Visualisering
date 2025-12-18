@@ -324,7 +324,12 @@ app.layout = html.Div([
                         ),
                     ], style={"marginTop": "8px"}),
                 ], open=False, style={"width": "160px", "flex": "0 0 auto"}),
-            ], style={"display": "flex", "flexDirection": "column", "alignItems": "center", "margin": "9px"})
+            ], style={"display": "flex", "flexDirection": "column", 
+                      "alignItems": "center", 
+                      "margin": "9px", 
+                      "borderTop": f"4px solid {CATEGORY_COLORS[cat]}",
+                      "borderRadius": "6px",
+                      "paddingTop": "6px",})
             for cat in CATEGORIES
         ], style={
             "display": "flex",
