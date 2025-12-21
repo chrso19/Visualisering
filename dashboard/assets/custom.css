@@ -208,3 +208,13 @@ details > div {
   overflow: hidden;            
   border: 1px solid #ced4da;   
 }
+
+
+/* Height of the date input boxes */
+.DateInput_input {
+  font-size: 16px;
+  text-align: center;
+  height: 40px;
+  line-height: 28px;
+  padding: 5px 7px;
+}
