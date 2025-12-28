@@ -251,6 +251,9 @@ INPUT ./images/Observations2.png
 INPUT ./images/Observations2.png
 INPUT ./images/Observations2.png
 INPUT ./images/Observations2.png
+INPUT c:/texlive/2025/texmf-dist/fonts/vf/adobe/times/zptmcmrm.vf
+INPUT c:/texlive/2025/texmf-dist/fonts/tfm/adobe/symbol/psyr.tfm
+INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
 INPUT ./conclusion.tex
 INPUT ./conclusion.tex
 INPUT conclusion.tex

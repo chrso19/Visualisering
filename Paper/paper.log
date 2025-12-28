@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.27)  28 DEC 2025 16:50
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.27)  28 DEC 2025 16:52
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -425,23 +425,21 @@ File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 LaTeX Warning: Reference `fig:tchange' on page 2 undefined on input line 1.
 
 ) (./design.tex) (./results.tex
-<images/Observations1.png, id=30, 520.19344pt x 546.54187pt>
+<images/Observations1.png, id=31, 520.19344pt x 546.54187pt>
 File: images/Observations1.png Graphic file (type png)
 <use images/Observations1.png>
 Package pdftex.def Info: images/Observations1.png  used on input line 5.
 (pdftex.def)             Requested size: 211.67908pt x 222.39902pt.
-<images/Observations2.png, id=31, 520.94624pt x 542.025pt>
+<images/Observations2.png, id=32, 520.94624pt x 542.025pt>
 File: images/Observations2.png Graphic file (type png)
 <use images/Observations2.png>
 Package pdftex.def Info: images/Observations2.png  used on input line 12.
 (pdftex.def)             Requested size: 211.67908pt x 220.24673pt.
- [2 <./images/Observations1.png> <./images/Observations2.png>]) (./conclusion.tex) (./paper.bbl (./paper.brf)
+ [2]) (./conclusion.tex) (./paper.bbl (./paper.brf)
 \tf@brf=\write4
 \openout4 = `paper.brf'.
 
-) [3
-
-] (./paper.aux)
+) [3 <./images/Observations1.png> <./images/Observations2.png>] (./paper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -451,21 +449,21 @@ L3 programming layer <2025-12-24>
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `paper.brf' has not changed.
-(rerunfilecheck)             Checksum: AE3D4D398F164938CC0E8230C5BC50C4;284.
+(rerunfilecheck)             Checksum: 932D8F005194B13174D61CE0C20FB2C6;334.
  ) 
 Here is how much of TeX's memory you used:
- 11191 strings out of 467537
- 178269 string characters out of 5423703
- 599245 words of memory out of 5000000
+ 11198 strings out of 467537
+ 178364 string characters out of 5423703
+ 604245 words of memory out of 5000000
  39905 multiletter control sequences out of 15000+600000
- 670652 words of font info for 95 fonts, out of 8000000 for 9000
+ 671341 words of font info for 97 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  90i,12n,93p,953b,535s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2025/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (3 pages, 367383 bytes).
+Output written on paper.pdf (3 pages, 370838 bytes).
 PDF statistics:
- 90 PDF objects out of 1000 (max. 8388607)
- 66 compressed objects within 1 object stream
- 19 named destinations out of 1000 (max. 500000)
+ 96 PDF objects out of 1000 (max. 8388607)
+ 72 compressed objects within 1 object stream
+ 24 named destinations out of 1000 (max. 500000)
  26 words of extra memory for PDF output out of 10000 (max. 10000000)
 
