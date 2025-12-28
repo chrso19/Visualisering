@@ -10,6 +10,8 @@
 \ifpdf \usepackage[pdftex]{graphicx} \pdfcompresslevel=9
 \else \usepackage[dvips]{graphicx} \fi
 \usepackage{egweblnk}
+\usepackage{subcaption}
+\usepackage{float}
 
 
 \title[Foraging Map Tool]%
@@ -19,8 +21,7 @@
 {\parbox{\textwidth}{\centering Kessor Chao$^{1}$, Christine Sandager Søgaard$^{1}$ and Anna Ellen Vedel Braaby$^{1}$
         }
         \\
-{\parbox{\textwidth}{\centering $^1$University of Southern Denmark, Odense, Denmark\\
-         $^2$Some other nice affiliation, if there is any
+{\parbox{\textwidth}{\centering $^1$University of Southern Denmark, Odense, Denmark
        }
 }
 }
@@ -29,15 +30,44 @@
 %-------------------------------------------------------------------------
 \begin{document}
 
-% uncomment for using teaser
-% \teaser{
-%  \includegraphics[width=\linewidth]{eg_new}
-%  \centering
-%   \caption{New EG Logo}
-% \label{fig:teaser}
-%}
+
+
+
+\teaser{
+    \centering
+    
+    % Top wide subfigure
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=0.97\textwidth]{images/Filter.png}
+        \caption{Time period selector and plant category filters.}
+        \label{fig:Filter}
+    \end{subfigure}
+    
+    \vspace{0.5cm}
+    
+    % Bottom two subfigures side by side
+    \begin{subfigure}{0.6\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/ForagingMap.png}
+        \caption{Foraging map of Denmark with number of observations within the time period.}
+        \label{fig:ForagingMap}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.37\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/MiniMap.png}
+        \caption{Mini map of the selected hexagon showing details of a selected observation.}
+        \label{fig:MiniMap}
+    \end{subfigure}
+    
+    \caption{Dashboard of the Foraging Map of Denmark.}
+    \label{fig:Dashboard}
+}
+
 
 \maketitle
+
 %-------------------------------------------------------------------------
 \begin{abstract}
 
