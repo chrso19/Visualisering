@@ -5,14 +5,14 @@ Furthermore, our tool follows the Visual Information Mantra \cite{InformationSee
 
 The tool consists of the following features/views:
 
-\paragraph{Map of Denmark}
+\subsection{Map of Denmark}
 The choropleth map allows for initial exploration of edible plant observations. 
 Since individual observations are too numerous to be meaningfully interpreted, we decided to aggregate the observations into spatial regions, using hexagons. Each hexagon represents observation density using sequential color scale.
 Using sequential color scale on the map, gives the user a quick interpretation of where observations are concentrated and where data is sparse across regions. In addition, it helps the user to decide which areas to explore further.
 Selecting a hexagon triggers the display of a mini map with detailed information within the selected region, enabling a smooth transition from overview to detailed inspection.
 
 
-\paragraph{Mini map}
+\subsection{Mini map}
 While the choropleth map supports high-level spatial exploration, the mini map provides a detailed local exploration of a selected region. 
 The purpose of the mini map is to allow users to inspect individual observation within a selected hexagon. By highlighting the selected hexagonal region in the mini map, we can distinguish observations within the hexagon from the surrounding observations.
 The mini map uses point markers to represent individual observations. The categories are encoded using categorical colors which is consistent with the category filter menu, allowing users to distinguish categories at local scale.
@@ -20,19 +20,19 @@ The mini map supports details-on-demand by allowing users to hover over or selec
 Finally, placing the mini map next to the map of Denmark, we allow users to see the individual observations while maintaining awareness of the selected region in the broader spatial context.
 
 
-\paragraph{Observation per period}
+\subsection{Observation per period}
 The observation period visualization is designed to help users understand when observations occur. While the geospatial view shows where observations are concentrated, they do not convey temporal patterns such as seasonality.
 The "observation per period" view allows users to identify periods with higher or lower observation activity across years, months, and days.
 Observations are aggregated by their categories and into time bins using a stacked histogram. Time is encoded along the x-axis, while the number of observation is encoded along the y-axis. 
 Plant categories are distinguished using categorical colors, consistent with the rest of the visualization.
-Users can select a specific time period \(stacked bar\) to access more detailed views, enabling a drill-down from monthly to daily observations.
+Users can select a specific time period \({stacked bar}\) to access more detailed views, enabling a drill-down from monthly to daily observations.
 
 
-\paragraph{Filter by date range}
+\subsection{Filter by date range}
 Date picker defines the temporal scope of the tool. Observation data spans from 2023-01-01 to 2025-11-16. By filtering the time period, the users can interpret the plant observations within a temporal context. 
 The date range filter is applied globally across the tool, ensuring that all visualizations update simultaneously and remain temporally consistent.
 
-\paragraph{Filter menu for category}
+\subsection{Filter menu for category}
 The category filter menu supports focused exploration of the dataset by allowing users to select or deselect entire plant categories or individual species. 
 This enables users to explore subsets of the data relevant to their interest. Filter selections are applied consistently across all views and can be adjusted continuously, supporting an exploratory workflow.
 
