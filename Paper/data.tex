@@ -1,7 +1,10 @@
 The dataset used in this work was obtained from the Global Biodiversity Information Facility (GBIF) \cite{gbif2026}.
-We extracted observations for a list of edible species, using geographic coordinates and dates to map occurrences. 
+We extracted observations for a list of edible species, using geographic coordinates and dates to map occurrences \cite{gbif_doi}.
+The observation period spans from 1 January 2023 to 16 November 2025. Observations within this interval were extracted for the present analysis. 
+This time window may be adjusted in future implementations, for example by updating the database on a daily basis.
 The list of edible species was created using information from Naturstyrelsen \cite{naturstyrelsen2026}. 
 All species in our list were manually categorized into eight groups: Herb, Fungi, Flower, Berry, Root, Algae, Nut, and Fruit.
 Each record contains additional metadata, such as observer, institution, and occurrence details. 
 These metadata could be incorporated in future iterations to enhance the dashboard.
+As part of the data cleaning process, only observations distributed under licenses permitting reuse were retained.
 This structured dataset provides a reliable foundation for analysis and visualization while allowing for further expansion and refinement over time.
