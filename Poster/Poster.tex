@@ -22,7 +22,7 @@
 %% 
 
 
-\documentclass[25pt, a1paper, portrait, colspace = 0.5cm, innermargin = 0.6cm,
+\documentclass[23pt, a1paper, portrait, colspace = 0.5cm, innermargin = 0.6cm,
 blockverticalspace = 0.7cm]{tikzposter}
 \input{colors.tex}
 \usecolorstyle{myColorStyle}
@@ -69,90 +69,67 @@ blockverticalspace = 0.7cm]{tikzposter}
  \maketitle[titletotopverticalspace=0.6cm,titletoblockverticalspace=1cm, 
     innersep = 0.5cm,width = 23in]
 
- % --- RÆKKE 1: Intro | What? | Why? (3 kolonner) ---
- \begin{columns}
-    \column{0.33}
-    \block{Introduction}{\input{text/introduction.tex}}
+ % --- RÆKKE 1: Intro (Fuld bredde) ---
+ \block{Introduction}{\input{text/introduction.tex}}
 
-    \column{0.34}
-    {
+ % --- RÆKKE 2: Why (Venstre) og Figur (Højre) ---
+ \begin{columns}
+
+       \column{0.3} % Smal kolonne til Why
+           {
         \colorlet{blocktitlebgcolor}{accentone}
         \block{What?}{\input{text/what.tex}}
     }
-
-    \column{0.33}
     {
         \colorlet{blocktitlebgcolor}{accenttwo}
         \block{Why?}{\input{text/why.tex}}
     }
- \end{columns}
-
- % --- RÆKKE 2: Full-width Figur (Uden for columns-miljøet) ---
-\block{Visualization of the Foraging Tool}{
-    \centering
-    \setcounter{subfigcount}{1} % Starter ved (a)
-    \refstepcounter{figure}     % Øger figur-nummeret (f.eks. Figur 1)
-
-    \begin{minipage}{\linewidth}
-        % --- VENSTRE KOLONNE ---
-        \begin{minipage}[c]{0.72\linewidth}
+    \column{0.7} % Bred kolonne til den store figur
+        
+    \block{Visualization of the Foraging Tool}{
+        \centering
+        \setcounter{subfigcount}{0}
+        \refstepcounter{figure}
+        
+        \begin{minipage}{\linewidth}
             \centering
-            \setcounter{subfigcount}{0}
             % (a) Filter
-            \begin{minipage}{\textwidth}
+            \begin{minipage}{0.9\textwidth}
                 \centering
-                \includegraphics[width=0.95\textwidth]{figures/Filter.png}
+                \includegraphics[width=\textwidth]{figures/Filter.png}
                 \mysubcaption{Filter and time selection.}\label{fig:filter}
             \end{minipage}
 
             \vspace{1cm}
 
             % (b) Main Map & (c) Mini Map
-            \begin{minipage}{0.60\textwidth}
-                \centering
-                \includegraphics[width=\textwidth]{figures/ForagingMap.png}
-                \mysubcaption{Main foraging map.}
-            \end{minipage}
-            \hfill
-            \begin{minipage}{0.37\textwidth}
-                \centering
-                \includegraphics[width=\textwidth]{figures/MiniMap.png}
-                \mysubcaption{Detail map.}
-            \end{minipage}
-        \end{minipage}
-        \hfill
-        % --- HØJRE KOLONNE (Observations) ---
-        \begin{minipage}[c]{0.24\linewidth}
-            \centering
             \begin{minipage}{\textwidth}
                 \centering
-                \includegraphics[width=\textwidth]{figures/observations1.png}
-                \mysubcaption{Obs A.}
-            \end{minipage}
-            
-            \vspace{1.5cm}
-            
-            \begin{minipage}{\textwidth}
-                \centering
-                \includegraphics[width=\textwidth]{figures/observations2.png}
-                \mysubcaption{Obs B.}
+                \begin{minipage}{0.58\textwidth}
+                    \centering
+                    \includegraphics[width=\textwidth]{figures/ForagingMap.png}
+                    \mysubcaption{Main foraging map.}
+                \end{minipage}
+                \hfill
+                \begin{minipage}{0.38\textwidth}
+                    \centering
+                    \includegraphics[width=\textwidth]{figures/MiniMap.png}
+                    \mysubcaption{Minimap.}
+                \end{minipage}
             \end{minipage}
         \end{minipage}
-    \end{minipage}
-
-    \vspace{1cm}
-    \centerline{\textbf{Figure \thefigure:} Full dashboard and detailed observation views.}
-}
- % --- RÆKKE 3: How? | Conclusion? (2 kolonner) ---
- \begin{columns}
-    \column{0.5}
-    {
-        \colorlet{blocktitlebgcolor}{accentthree}
-        \block{How?}{\input{text/how.tex}}
+        \vspace{1cm}
+        \centerline{\textbf{Figure \thefigure:} Dashboard interface and spatial distribution.}
     }
-
-    \column{0.5}
+    {
+    \colorlet{blocktitlebgcolor}{accentthree}
+        \block{How}{\input{text/how.tex}}
+    }
+     
     \block{Conclusion}{\input{text/conclusion.tex}}
+
  \end{columns}
 
- \end{document}
+
+
+\end{document}
