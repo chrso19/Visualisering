@@ -1,0 +1,194 @@
+%%
+%% This is file `tikzposter-example.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% tikzposter.dtx  (with options: `tikzposter-example.tex')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2014 by Pascal Richter, Elena Botoeva, Richard Barnard, and Dirk Surmann
+%% 
+%% This file may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either
+%% version 2.0 of this license or (at your option) any later
+%% version. The latest version of this license is in:
+%% 
+%% http://www.latex-project.org/lppl.txt
+%% 
+%% and version 2.0 or later is part of all distributions of
+%% LaTeX version 2013/12/01 or later.
+%% 
+
+
+\documentclass[20pt, a1paper, portrait, colspace = 0.5cm, innermargin = 0.6cm,
+blockverticalspace = 0.7cm]{tikzposter}
+\input{colors.tex}
+\usecolorstyle{myColorStyle}
+\usetitlestyle{Default}
+\useblockstyle[titleinnersep = 0.5cm]{Default}
+\tikzposterlatexaffectionproofoff
+\usetikzlibrary{positioning}
+\usepackage{amssymb,amsmath}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+
+\usepackage{blindtext}
+\usepackage{caption}
+\usepackage{subcaption}
+\newcounter{subfigcount}
+\newcommand{\mysubcaption}[1]{%
+    \vskip 0.5cm {\small \textbf{(\alph{subfigcount})} #1}%
+    \stepcounter{subfigcount}%
+}
+
+\setlength{\extrarowheight}{3pt}
+
+
+\usepackage{environ}
+\setlength{\tabcolsep}{10pt} % default er 6pt
+
+%% --- Table formatting/style ---
+
+\newsavebox{\tablebox}
+
+\NewEnviron{rndtable}[1]{% #1 = tabularkolonner
+  \addtolength{\extrarowheight}{8pt}%
+  \savebox{\tablebox}{%
+    \begin{tabular}{#1}%
+      \BODY%
+    \end{tabular}}%
+  \begin{tikzpicture}
+    \begin{scope}
+      % Baggrundsfarve bag hele tabellen
+      \fill[colorTwo!90, rounded corners=1ex]
+        (0,-\dp\tablebox) rectangle (\wd\tablebox,\ht\tablebox);
+      % Klip tabellen til afrundede hjørner
+      \clip[rounded corners=1ex]
+        (0,-\dp\tablebox) rectangle (\wd\tablebox,\ht\tablebox);
+      % Indsæt tabelindholdet
+      \node at (0,-\dp\tablebox)
+        [anchor=south west,inner sep=0pt]{\usebox{\tablebox}};
+    \end{scope}
+  \end{tikzpicture}
+}
+
+%% --- Figure formatting/style---
+\newsavebox{\figbox}
+
+\NewEnviron{rndfig}[1][]% Optional TikZ options
+{%
+  \savebox{\figbox}{\BODY}%
+  \begin{tikzpicture}[#1]
+    \begin{scope}
+      % Baggrundsform med afrundede hjørner
+      \fill[colorTwo!90, rounded corners=1ex]
+        (0,-\dp\figbox) rectangle (\wd\figbox,\ht\figbox);
+      % Klip figuren til afrundede hjørner
+      \clip[rounded corners=1ex]
+        (0,-\dp\figbox) rectangle (\wd\figbox,\ht\figbox);
+      % Indsæt figur
+      \node at (0,-\dp\figbox)
+        [anchor=south west,inner sep=0pt]{\usebox{\figbox}};
+    \end{scope}
+  \end{tikzpicture}
+}
+
+
+ % Title, Author, Institute
+ \title{\parbox{\linewidth}{\centering Visual Exploration of Edible Wild Flora:\\ \LARGE A foraging-Oriented Map Tool\\[1cm] }}
+ \author{\large Kessor Chao, Christine Sandager Søgaard \& Anna Ellen Vedel Braaby}
+ \institute{\large University of Southern Denmark, Odense, Denmark}
+
+\begin{document}
+
+ \maketitle[titletotopverticalspace=0.6cm,titletoblockverticalspace=1cm, 
+    innersep = 0.5cm,width = 23in]
+
+ % --- RÆKKE 1: Intro | What? | Why? (3 kolonner) ---
+ \begin{columns}
+    \column{0.33}
+    \block{Introduction}{\input{text/introduction.tex}}
+
+    \column{0.34}
+    {
+        \colorlet{blocktitlebgcolor}{accentone}
+        \block{What?}{\input{text/what.tex}}
+    }
+
+    \column{0.33}
+    {
+        \colorlet{blocktitlebgcolor}{accenttwo}
+        \block{Why?}{\input{text/why.tex}}
+    }
+ \end{columns}
+
+ % --- RÆKKE 2: Full-width Figur (Uden for columns-miljøet) ---
+\block{Visualization of the Foraging Tool}{
+    \centering
+    \setcounter{subfigcount}{1} % Starter ved (a)
+    \refstepcounter{figure}     % Øger figur-nummeret (f.eks. Figur 1)
+
+    \begin{minipage}{\linewidth}
+        % --- VENSTRE KOLONNE ---
+        \begin{minipage}[c]{0.72\linewidth}
+            \centering
+            % (a) Filter
+            \begin{minipage}{\textwidth}
+                \centering
+                \includegraphics[width=0.95\textwidth]{figures/Filter.png}
+                \mysubcaption{Filter and time selection.}
+            \end{minipage}
+
+            \vspace{1cm}
+
+            % (b) Main Map & (c) Mini Map
+            \begin{minipage}{0.60\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{figures/ForagingMap.png}
+                \mysubcaption{Main foraging map.}
+            \end{minipage}
+            \hfill
+            \begin{minipage}{0.37\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{figures/MiniMap.png}
+                \mysubcaption{Detail map.}
+            \end{minipage}
+        \end{minipage}
+        \hfill
+        % --- HØJRE KOLONNE (Observations) ---
+        \begin{minipage}[c]{0.24\linewidth}
+            \centering
+            \begin{minipage}{\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{figures/observations1.png}
+                \mysubcaption{Obs A.}
+            \end{minipage}
+            
+            \vspace{1.5cm}
+            
+            \begin{minipage}{\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{figures/observations2.png}
+                \mysubcaption{Obs B.}
+            \end{minipage}
+        \end{minipage}
+    \end{minipage}
+
+    \vspace{1cm}
+    \centerline{\textbf{Figure \thefigure:} Full dashboard and detailed observation views.}
+}
+ % --- RÆKKE 3: How? | Conclusion? (2 kolonner) ---
+ \begin{columns}
+    \column{0.5}
+    {
+        \colorlet{blocktitlebgcolor}{accentthree}
+        \block{How?}{\input{text/how.tex}}
+    }
+
+    \column{0.5}
+    \block{Conclusion}{\input{text/conclusion.tex}}
+ \end{columns}
+
+ \end{document}

@@ -1,0 +1,44 @@
+
+
+
+% Core colors
+\definecolor{mainbg}{HTML}{F7F3E9}           % cream
+\definecolor{textcolor}{HTML}{0B0B09}        % onyx
+\definecolor{blockcolor}{HTML}{628B48}       % fern
+\definecolor{titleblockcolor}{HTML}{053913}  % black-forest
+
+% Accent colors
+\definecolor{accentone}{HTML}{BAB823} % flower
+\definecolor{accenttwo}{HTML}{690C4A}   % Berry
+\definecolor{accentthree}{HTML}{9E1210}   % Fruit
+
+
+
+
+\definecolorstyle{myColorStyle}{
+\colorlet{colorOne}{mainbg}
+\colorlet{colorTwo}{blockcolor}
+\colorlet{colorThree}{titleblockcolor}
+}{
+% Background Color
+\colorlet{backgroundcolor}{colorTwo!20}
+% Title Colors
+\colorlet{titlefgcolor}{colorOne}
+\colorlet{titlebgcolor}{colorThree}
+\colorlet{framecolor}{colorThree!70}
+% Block Colors
+\colorlet{blocktitlebgcolor}{colorThree!80}
+\colorlet{blocktitlefgcolor}{colorOne}
+\colorlet{blockbodybgcolor}{colorTwo!30}
+\colorlet{blockbodyfgcolor}{black}
+% Innerblock Colors
+\colorlet{innerblocktitlebgcolor}{white}
+\colorlet{innerblocktitlefgcolor}{colorOne}
+\colorlet{innerblockbodybgcolor}{white}
+\colorlet{innerblockbodyfgcolor}{colorOne}
+% Note colors
+\colorlet{notefgcolor}{black}
+\colorlet{notebgcolor}{white}
+\colorlet{notefrcolor}{white}
+}
+
