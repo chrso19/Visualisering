@@ -22,7 +22,7 @@
 %% 
 
 
-\documentclass[20pt, a1paper, portrait, colspace = 0.5cm, innermargin = 0.6cm,
+\documentclass[25pt, a1paper, portrait, colspace = 0.5cm, innermargin = 0.6cm,
 blockverticalspace = 0.7cm]{tikzposter}
 \input{colors.tex}
 \usecolorstyle{myColorStyle}
@@ -37,10 +37,17 @@ blockverticalspace = 0.7cm]{tikzposter}
 \usepackage{blindtext}
 \usepackage{caption}
 \usepackage{subcaption}
+
+%% --- Korrekt link mellem Figur og Subfig ---
 \newcounter{subfigcount}
+
+% Denne linje tvinger referencen til at være "Figurnummer(Subbogstav)"
+\renewcommand{\thesubfigcount}{\thefigure(\alph{subfigcount})}
+
 \newcommand{\mysubcaption}[1]{%
-    \vskip 0.5cm {\small \textbf{(\alph{subfigcount})} #1}%
-    \stepcounter{subfigcount}%
+    \vskip 0.5cm 
+    \refstepcounter{subfigcount} % Gør tælleren aktiv for \label
+    {\small \textbf{(\alph{subfigcount})} #1}% Vi skriver kun (a) under billedet
 }
 
 \setlength{\extrarowheight}{3pt}
@@ -49,51 +56,7 @@ blockverticalspace = 0.7cm]{tikzposter}
 \usepackage{environ}
 \setlength{\tabcolsep}{10pt} % default er 6pt
 
-%% --- Table formatting/style ---
 
-\newsavebox{\tablebox}
-
-\NewEnviron{rndtable}[1]{% #1 = tabularkolonner
-  \addtolength{\extrarowheight}{8pt}%
-  \savebox{\tablebox}{%
-    \begin{tabular}{#1}%
-      \BODY%
-    \end{tabular}}%
-  \begin{tikzpicture}
-    \begin{scope}
-      % Baggrundsfarve bag hele tabellen
-      \fill[colorTwo!90, rounded corners=1ex]
-        (0,-\dp\tablebox) rectangle (\wd\tablebox,\ht\tablebox);
-      % Klip tabellen til afrundede hjørner
-      \clip[rounded corners=1ex]
-        (0,-\dp\tablebox) rectangle (\wd\tablebox,\ht\tablebox);
-      % Indsæt tabelindholdet
-      \node at (0,-\dp\tablebox)
-        [anchor=south west,inner sep=0pt]{\usebox{\tablebox}};
-    \end{scope}
-  \end{tikzpicture}
-}
-
-%% --- Figure formatting/style---
-\newsavebox{\figbox}
-
-\NewEnviron{rndfig}[1][]% Optional TikZ options
-{%
-  \savebox{\figbox}{\BODY}%
-  \begin{tikzpicture}[#1]
-    \begin{scope}
-      % Baggrundsform med afrundede hjørner
-      \fill[colorTwo!90, rounded corners=1ex]
-        (0,-\dp\figbox) rectangle (\wd\figbox,\ht\figbox);
-      % Klip figuren til afrundede hjørner
-      \clip[rounded corners=1ex]
-        (0,-\dp\figbox) rectangle (\wd\figbox,\ht\figbox);
-      % Indsæt figur
-      \node at (0,-\dp\figbox)
-        [anchor=south west,inner sep=0pt]{\usebox{\figbox}};
-    \end{scope}
-  \end{tikzpicture}
-}
 
 
  % Title, Author, Institute
@@ -134,11 +97,12 @@ blockverticalspace = 0.7cm]{tikzposter}
         % --- VENSTRE KOLONNE ---
         \begin{minipage}[c]{0.72\linewidth}
             \centering
+            \setcounter{subfigcount}{0}
             % (a) Filter
             \begin{minipage}{\textwidth}
                 \centering
                 \includegraphics[width=0.95\textwidth]{figures/Filter.png}
-                \mysubcaption{Filter and time selection.}
+                \mysubcaption{Filter and time selection.}\label{fig:filter}
             \end{minipage}
 
             \vspace{1cm}
