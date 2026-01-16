@@ -22,7 +22,7 @@
 %% 
 
 
-\documentclass[23pt, a1paper, portrait, colspace = 0.5cm, innermargin = 0.6cm,
+\documentclass[23pt, a1paper, portrait, colspace = 0.5cm, innermargin = 0.6cm, subcolspace=-1cm,
 blockverticalspace = 0.7cm]{tikzposter}
 \input{colors.tex}
 \usecolorstyle{myColorStyle}
@@ -35,8 +35,7 @@ blockverticalspace = 0.7cm]{tikzposter}
 \usepackage{tabularx}
 
 \usepackage{blindtext}
-\usepackage{caption}
-\usepackage{subcaption}
+
 
 
 
@@ -58,9 +57,29 @@ blockverticalspace = 0.7cm]{tikzposter}
 \usepackage{environ}
 \setlength{\tabcolsep}{10pt} % default er 6pt
 
+\defineblockstyle{OnlyTitle}{
+    titlewidthscale=1.0, bodywidthscale=1, titlecenter,
+    titleoffsetx=0pt, titleoffsety=0pt, bodyoffsetx=0mm, bodyoffsety=0mm,
+    bodyverticalshift=5mm, roundedcorners=0, linewidth=0pt,
+    titleinnersep=0.5cm, bodyinnersep=0.5cm
+}{
+    \ifBlockHasTitle
+        \draw[color=titlebgcolor, line width=5pt] 
+            ($(blocktitle.south west)!0.1!(blocktitle.south east)$) -- 
+            ($(blocktitle.south west)!0.9!(blocktitle.south east)$);
+    \fi
+}
 
+\usepackage{caption}
 
+% 1. Sæt tælleren til små bogstaver med parentes: (a), (b)...
+\renewcommand{\thefigure}{(\alph{figure})}
 
+% 2. Fjern selve label-teksten ("Figure (a)") fra visningen
+\captionsetup[figure]{labelformat=empty}
+
+\DeclareCaptionTextFormat{addlabel}{\thefigure\enskip #1}
+\captionsetup[figure]{textformat=addlabel}
  % Title, Author, Institute
  \title{\parbox{\linewidth}{\centering Visual Exploration of Edible Wild Flora:\\ \LARGE A foraging-Oriented Map Tool\\[0.7cm] }}
  \author{\large Kessor Chao, Christine Sandager Søgaard \& Anna Ellen Vedel Braaby \quad | \quad University of Southern Denmark \\[-0.7cm]}
@@ -87,22 +106,20 @@ blockverticalspace = 0.7cm]{tikzposter}
         \block{Why?}{\input{text/why.tex}}
     }
     \column{0.7} % Bred kolonne til den store figur
-        
-    \block{Visualization of the Foraging Tool}{
+    {
+    \useblockstyle{OnlyTitle} 
+    \block{\color{titlebgcolor}Visualization of the Foraging Tool}{
         \centering
-        \setcounter{subfigcount}{0}
-        \refstepcounter{figure}
+        \setcounter{figure}{0}
         
-        \begin{minipage}{\linewidth}
-            \begin{minipage}{0.79\textwidth}
-                
-            
+        \begin{minipage}{0.9\linewidth}
+
             \centering
             % (a) Filter
             \begin{minipage}{\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{figures/Filter.png}
-                \mysubcaption{Filter and time selection.}\label{fig:filter}
+                \captionof{figure}{Filter and time selection} \label{fig:filter}
             \end{minipage}
 
             \vspace{1cm}
@@ -113,42 +130,54 @@ blockverticalspace = 0.7cm]{tikzposter}
                 \begin{minipage}{0.58\textwidth}
                     \centering
                     \includegraphics[width=\textwidth]{figures/ForagingMap.png}
-                    \mysubcaption{Main foraging map.}
+                    \captionof{figure}{Main foraging map} \label{fig:mainmap}
                 \end{minipage}
                 \hfill
                 \begin{minipage}{0.39\textwidth}
                     \centering
                     \includegraphics[width=\textwidth]{figures/MiniMap.png}
-                    \mysubcaption{Minimap.}
-
-                \end{minipage}
-            \end{minipage}
-            \end{minipage}
-            \hfill \vrule \hfill
-            \begin{minipage}{0.19\textwidth}
-                \begin{minipage}{\textwidth}
-                    \centering
-                    \includegraphics[width=\textwidth]{figures/Observations1.png}
-                    \mysubcaption{observations tab.}
-                \end{minipage}
-                \vspace{1cm}
-                \begin{minipage}{\textwidth}
-                    \centering
-                    \includegraphics[width=\textwidth]{figures/Observations1.png}
-                    \mysubcaption{observations tab.}
+                    \captionof{figure}{Minimap} \label{fig:minimap}
                 \end{minipage}
             \end{minipage}
         \end{minipage}
         % \vspace{1cm}
         % \centerline{\textbf{Figure \thefigure:} Dashboard interface and spatial distribution.}
     }
+    }
+    \useblockstyle{Default}
 
-    
+    \begin{subcolumns}
+    \subcolumn{0.72}
+
    {
     \colorlet{blocktitlebgcolor}{accentthree}
-        \block{How}{\input{text/how.tex}}
+        \block{How?}{\input{text/how.tex}}
         }
-
+        \subcolumn{0.28}
+        {
+        \useblockstyle{OnlyTitle}
+        
+        \block{}{
+            % \vspace{-0.5cm}
+            \begin{minipage}{\linewidth}
+                \begin{minipage}{\textwidth}
+                    \centering
+                    \includegraphics[width=\textwidth]{figures/Observations1.png}
+                    \captionof{figure}{Observations tab} \label{fig:obs1}
+                \end{minipage}
+                \vspace{1cm}
+                \par
+                \begin{minipage}{\textwidth}
+                    \centering
+                    \includegraphics[width=\textwidth]{figures/Observations1.png}
+                    \captionof{figure}{Observations tab 2} \label{fig:obs2}
+                \end{minipage}
+            \end{minipage}
+        }
+        }
+                \useblockstyle{Default}
+        \end{subcolumns}
+        \useblockstyle{Default}
     \block{Conclusion}{\input{text/conclusion.tex}}
 
  \end{columns}
