@@ -94,9 +94,12 @@ blockverticalspace = 0.7cm]{tikzposter}
         \refstepcounter{figure}
         
         \begin{minipage}{\linewidth}
+            \begin{minipage}{0.79\textwidth}
+                
+            
             \centering
             % (a) Filter
-            \begin{minipage}{0.8\textwidth}
+            \begin{minipage}{\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{figures/Filter.png}
                 \mysubcaption{Filter and time selection.}\label{fig:filter}
@@ -107,22 +110,32 @@ blockverticalspace = 0.7cm]{tikzposter}
             % (b) Main Map & (c) Mini Map
             \begin{minipage}{\textwidth}
                 \centering
-                \begin{minipage}{0.42\textwidth}
+                \begin{minipage}{0.58\textwidth}
                     \centering
                     \includegraphics[width=\textwidth]{figures/ForagingMap.png}
                     \mysubcaption{Main foraging map.}
                 \end{minipage}
                 \hfill
-                \begin{minipage}{0.28\textwidth}
+                \begin{minipage}{0.39\textwidth}
                     \centering
                     \includegraphics[width=\textwidth]{figures/MiniMap.png}
                     \mysubcaption{Minimap.}
+
                 \end{minipage}
-                                \hfill
-                \begin{minipage}{0.28\textwidth}
+            \end{minipage}
+            \end{minipage}
+            \hfill \vrule \hfill
+            \begin{minipage}{0.19\textwidth}
+                \begin{minipage}{\textwidth}
                     \centering
-                    \includegraphics[width=\textwidth]{figures/Observations2.png}
-                    \mysubcaption{Observations.}
+                    \includegraphics[width=\textwidth]{figures/Observations1.png}
+                    \mysubcaption{observations tab.}
+                \end{minipage}
+                \vspace{1cm}
+                \begin{minipage}{\textwidth}
+                    \centering
+                    \includegraphics[width=\textwidth]{figures/Observations1.png}
+                    \mysubcaption{observations tab.}
                 \end{minipage}
             \end{minipage}
         \end{minipage}
