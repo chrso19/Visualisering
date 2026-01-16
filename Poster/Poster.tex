@@ -38,19 +38,6 @@ blockverticalspace = 0.7cm]{tikzposter}
 
 
 
-
-%% --- Korrekt link mellem Figur og Subfig ---
-\newcounter{subfigcount}
-
-% Denne linje tvinger referencen til at være "Figurnummer(Subbogstav)"
-\renewcommand{\thesubfigcount}{\thefigure(\alph{subfigcount})}
-
-\newcommand{\mysubcaption}[1]{%
-    \vskip 0.5cm 
-    \refstepcounter{subfigcount} % Gør tælleren aktiv for \label
-    {\small \textbf{(\alph{subfigcount})} #1}% Vi skriver kun (a) under billedet
-}
-
 \setlength{\extrarowheight}{3pt}
 
 
@@ -80,6 +67,9 @@ blockverticalspace = 0.7cm]{tikzposter}
 
 \DeclareCaptionTextFormat{addlabel}{\thefigure\enskip #1}
 \captionsetup[figure]{textformat=addlabel}
+
+
+
  % Title, Author, Institute
  \title{\parbox{\linewidth}{\centering Visual Exploration of Edible Wild Flora:\\ \LARGE A foraging-Oriented Map Tool\\[0.7cm] }}
  \author{\large Kessor Chao, Christine Sandager Søgaard \& Anna Ellen Vedel Braaby \quad | \quad University of Southern Denmark \\[-0.7cm]}
