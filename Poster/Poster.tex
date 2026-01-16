@@ -38,6 +38,8 @@ blockverticalspace = 0.7cm]{tikzposter}
 \usepackage{caption}
 \usepackage{subcaption}
 
+
+
 %% --- Korrekt link mellem Figur og Subfig ---
 \newcounter{subfigcount}
 
@@ -60,13 +62,13 @@ blockverticalspace = 0.7cm]{tikzposter}
 
 
  % Title, Author, Institute
- \title{\parbox{\linewidth}{\centering Visual Exploration of Edible Wild Flora:\\ \LARGE A foraging-Oriented Map Tool\\[1cm] }}
- \author{\large Kessor Chao, Christine Sandager Søgaard \& Anna Ellen Vedel Braaby}
- \institute{\large University of Southern Denmark, Odense, Denmark}
+ \title{\parbox{\linewidth}{\centering Visual Exploration of Edible Wild Flora:\\ \LARGE A foraging-Oriented Map Tool\\[0.7cm] }}
+ \author{\large Kessor Chao, Christine Sandager Søgaard \& Anna Ellen Vedel Braaby \quad | \quad University of Southern Denmark \\[-0.7cm]}
+%  \institute{\normalsize University of Southern Denmark, Odense, Denmark}
 
 \begin{document}
 
- \maketitle[titletotopverticalspace=0.6cm,titletoblockverticalspace=1cm, 
+ \maketitle[titletotopverticalspace=0.6cm,titletoblockverticalspace=0.6cm, 
     innersep = 0.5cm,width = 23in]
 
  % --- RÆKKE 1: Intro (Fuld bredde) ---
@@ -94,7 +96,7 @@ blockverticalspace = 0.7cm]{tikzposter}
         \begin{minipage}{\linewidth}
             \centering
             % (a) Filter
-            \begin{minipage}{0.9\textwidth}
+            \begin{minipage}{1\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{figures/Filter.png}
                 \mysubcaption{Filter and time selection.}\label{fig:filter}
@@ -111,20 +113,23 @@ blockverticalspace = 0.7cm]{tikzposter}
                     \mysubcaption{Main foraging map.}
                 \end{minipage}
                 \hfill
-                \begin{minipage}{0.38\textwidth}
+                \begin{minipage}{0.39\textwidth}
                     \centering
                     \includegraphics[width=\textwidth]{figures/MiniMap.png}
                     \mysubcaption{Minimap.}
                 \end{minipage}
             \end{minipage}
         \end{minipage}
-        \vspace{1cm}
-        \centerline{\textbf{Figure \thefigure:} Dashboard interface and spatial distribution.}
+        % \vspace{1cm}
+        % \centerline{\textbf{Figure \thefigure:} Dashboard interface and spatial distribution.}
     }
-    {
+   {
     \colorlet{blocktitlebgcolor}{accentthree}
         \block{How}{\input{text/how.tex}}
-    }
+        }
+    % \colorlet{blocktitlebgcolor}{accentthree}
+    %     \block{How}{\input{text/how.tex}}
+    % }
      
     \block{Conclusion}{\input{text/conclusion.tex}}
 
