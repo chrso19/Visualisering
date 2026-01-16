@@ -74,10 +74,10 @@ blockverticalspace = 0.7cm]{tikzposter}
  % --- RÆKKE 1: Intro (Fuld bredde) ---
  \block{Introduction}{\input{text/introduction.tex}}
 
- % --- RÆKKE 2: Why (Venstre) og Figur (Højre) ---
+ % --- 
  \begin{columns}
 
-       \column{0.3} % Smal kolonne til Why
+       \column{0.3} % Smal kolonne til What and why
            {
         \colorlet{blocktitlebgcolor}{accentone}
         \block{What?}{\input{text/what.tex}}
@@ -96,7 +96,7 @@ blockverticalspace = 0.7cm]{tikzposter}
         \begin{minipage}{\linewidth}
             \centering
             % (a) Filter
-            \begin{minipage}{1\textwidth}
+            \begin{minipage}{0.8\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{figures/Filter.png}
                 \mysubcaption{Filter and time selection.}\label{fig:filter}
@@ -107,30 +107,35 @@ blockverticalspace = 0.7cm]{tikzposter}
             % (b) Main Map & (c) Mini Map
             \begin{minipage}{\textwidth}
                 \centering
-                \begin{minipage}{0.58\textwidth}
+                \begin{minipage}{0.42\textwidth}
                     \centering
                     \includegraphics[width=\textwidth]{figures/ForagingMap.png}
                     \mysubcaption{Main foraging map.}
                 \end{minipage}
                 \hfill
-                \begin{minipage}{0.39\textwidth}
+                \begin{minipage}{0.28\textwidth}
                     \centering
                     \includegraphics[width=\textwidth]{figures/MiniMap.png}
                     \mysubcaption{Minimap.}
+                \end{minipage}
+                                \hfill
+                \begin{minipage}{0.28\textwidth}
+                    \centering
+                    \includegraphics[width=\textwidth]{figures/Observations2.png}
+                    \mysubcaption{Observations.}
                 \end{minipage}
             \end{minipage}
         \end{minipage}
         % \vspace{1cm}
         % \centerline{\textbf{Figure \thefigure:} Dashboard interface and spatial distribution.}
     }
+
+    
    {
     \colorlet{blocktitlebgcolor}{accentthree}
         \block{How}{\input{text/how.tex}}
         }
-    % \colorlet{blocktitlebgcolor}{accentthree}
-    %     \block{How}{\input{text/how.tex}}
-    % }
-     
+
     \block{Conclusion}{\input{text/conclusion.tex}}
 
  \end{columns}
