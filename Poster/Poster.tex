@@ -102,7 +102,7 @@ blockverticalspace = 0.7cm]{tikzposter}
         \centering
         \setcounter{figure}{0}
         
-        \begin{minipage}{0.9\linewidth}
+        \begin{minipage}{0.93\linewidth}
 
             \centering
             % (a) Filter
@@ -112,7 +112,7 @@ blockverticalspace = 0.7cm]{tikzposter}
                 \captionof{figure}{Filter and time selection} \label{fig:filter}
             \end{minipage}
 
-            \vspace{1cm}
+            \vspace{1.1cm}
 
             % (b) Main Map & (c) Mini Map
             \begin{minipage}{\textwidth}
@@ -137,13 +137,13 @@ blockverticalspace = 0.7cm]{tikzposter}
     \useblockstyle{Default}
 
     \begin{subcolumns}
-    \subcolumn{0.72}
+    \subcolumn{0.71}
 
    {
     \colorlet{blocktitlebgcolor}{accentthree}
         \block{How?}{\input{text/how.tex}}
         }
-        \subcolumn{0.28}
+        \subcolumn{0.29}
         {
         \useblockstyle{OnlyTitle}
         
@@ -159,18 +159,20 @@ blockverticalspace = 0.7cm]{tikzposter}
                 \par
                 \begin{minipage}{\textwidth}
                     \centering
-                    \includegraphics[width=\textwidth]{figures/Observations1.png}
-                    \captionof{figure}{Observations tab 2} \label{fig:obs2}
+                    \includegraphics[width=\textwidth]{figures/Observations2.png}
+                    \captionof{figure}{Observations tab} \label{fig:obs2}
                 \end{minipage}
             \end{minipage}
         }
         }
                 \useblockstyle{Default}
         \end{subcolumns}
+\end{columns}
+
+         
         \useblockstyle{Default}
     \block{Conclusion}{\input{text/conclusion.tex}}
 
- \end{columns}
 
 
 
